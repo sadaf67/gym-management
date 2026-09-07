@@ -1,0 +1,274 @@
+@{ Layout = "~/Areas/Member/Views/Shared/_MemberLayout.cshtml"; }
+@{
+    var user = ViewBag.User as Tahila.Infrastructure.Data.ApplicationUser;
+    var payments = ViewBag.Payments as IEnumerable<Tahila.Domain.Entities.Payment> ?? [];
+    var bmiHistory = ViewBag.BmiHistory as IEnumerable<Tahila.Domain.Entities.BodyAnalysis> ?? [];
+    int streak = ViewBag.Streak ?? 0;
+    var activeSubscription = payments
+        .Where(p => p.Status == Tahila.Domain.Enums.PaymentStatus.Success)
+        .Select(p => p.Subscription)
+        .Where(s => s != null && s.Status == Tahila.Domain.Enums.SubscriptionStatus.Active && s.EndDate > DateTime.Now)
+        .FirstOrDefault();
+}
+
+@section Styles {
+<style>
+.stat-mini { background:var(--dark-card);border:1px solid var(--dark-border);border-radius:16px;padding:1.2rem;text-align:center }
+.stat-mini .val { font-size:2rem;font-weight:900;line-height:1 }
+.stat-mini .lbl { color:var(--gray);font-size:.78rem;margin-top:4px }
+.streak-fire { font-size:2.2rem;filter:drop-shadow(0 0 8px #f97316) }
+</style>
+}
+
+<!-- ── Top stats row ── -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-mini">
+            <div class="val" style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                @(bmiHistory.Any() ? bmiHistory.Last().BMI.ToString("F1") : "—")
+            </div>
+            <div class="lbl">BMI فعلی</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-mini">
+            <div class="val" style="color:#22c55e">@bmiHistory.Count()</div>
+            <div class="lbl">اندازه‌گیری‌ها</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-mini">
+            @if (streak > 0)
+            {
+                <div class="val streak-fire">🔥</div>
+                <div class="lbl">@streak روز متوالی</div>
+            }
+            else
+            {
+                <div class="val" style="color:#6b7280">0</div>
+                <div class="lbl">استریک تمرین</div>
+            }
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-mini">
+            <div class="val" style="color:@(activeSubscription != null ? "#22c55e" : "#ef4444")">
+                @(activeSubscription != null ? "✓" : "✗")
+            </div>
+            <div class="lbl">@(activeSubscription != null ? "اشتراک فعال" : "بدون اشتراک")</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Profile card -->
+    <div class="col-md-4">
+        <div class="tahila-card p-4 text-center">
+            <div style="width:80px;height:80px;background:rgba(255,45,120,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;border:3px solid var(--primary)">
+                <i class="fas fa-user" style="font-size:2rem;color:var(--primary)"></i>
+            </div>
+            <h5 style="font-weight:900">@user?.FirstName @user?.LastName</h5>
+            <p style="color:var(--gray);font-size:.85rem">@user?.Email</p>
+            @if (!string.IsNullOrEmpty(user?.PhoneNumber))
+            { <p style="color:var(--gray);font-size:.85rem"><i class="fas fa-phone me-1" style="color:var(--primary)"></i>@user.PhoneNumber</p> }
+
+            @if (streak >= 7)
+            {
+                <div style="margin-top:.8rem;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:12px;padding:.6rem">
+                    <span style="color:#f97316;font-weight:700;font-size:.85rem">🔥 @streak روز — عالی هستی!</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Subscription -->
+    <div class="col-md-8">
+        <div class="tahila-card p-4">
+            <h6 style="font-weight:700;margin-bottom:1rem">وضعیت اشتراک</h6>
+            @if (activeSubscription != null)
+            {
+                <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:1.5rem">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div style="width:50px;height:50px;background:rgba(34,197,94,.15);border-radius:12px;display:flex;align-items:center;justify-content:center">
+                            <i class="fas fa-check-circle" style="color:#22c55e;font-size:1.3rem"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;font-size:1.1rem">@activeSubscription.Plan?.Name</div>
+                            <div style="color:#22c55e;font-size:.85rem">اشتراک فعال</div>
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div style="color:var(--gray);font-size:.8rem">تاریخ شروع</div>
+                            <div style="font-weight:600;font-size:.9rem">@activeSubscription.StartDate.ToString("yyyy/MM/dd")</div>
+                        </div>
+                        <div class="col-6">
+                            <div style="color:var(--gray);font-size:.8rem">تاریخ انقضا</div>
+                            <div style="font-weight:600;font-size:.9rem;color:var(--primary)">@activeSubscription.EndDate.ToString("yyyy/MM/dd")</div>
+                        </div>
+                    </div>
+                    @{
+                        var daysLeft = (activeSubscription.EndDate - DateTime.Now).Days;
+                        var progress = Math.Max(0, Math.Min(100, (int)(daysLeft * 100.0 / (activeSubscription.Plan?.DurationDays ?? 30))));
+                    }
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between" style="font-size:.8rem;color:var(--gray)">
+                            <span>@daysLeft روز مانده</span>
+                            <span>@progress%</span>
+                        </div>
+                        <div style="height:6px;background:var(--dark-border);border-radius:3px;margin-top:6px">
+                            <div style="height:100%;width:@progress%;background:var(--gradient);border-radius:3px;transition:width .5s"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div style="background:rgba(255,45,120,.05);border:1px solid rgba(255,45,120,.15);border-radius:12px;padding:1.5rem;text-align:center">
+                    <i class="fas fa-times-circle" style="font-size:2rem;color:#ef4444;opacity:.6"></i>
+                    <p style="color:var(--gray);margin:1rem 0">اشتراک فعالی ندارید</p>
+                    <a href="/plans" class="btn-primary-tahila">خرید اشتراک</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- ── BMI Progress Chart ── -->
+@if (bmiHistory.Any())
+{
+    <div class="tahila-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 style="font-weight:700;margin:0"><i class="fas fa-chart-line me-2" style="color:#22c55e"></i>پیشرفت BMI شما</h6>
+            <a href="/bmi/history" style="color:var(--gray);font-size:.82rem">مشاهده همه <i class="fas fa-arrow-left ms-1"></i></a>
+        </div>
+        <canvas id="bmiChart" height="100"></canvas>
+    </div>
+}
+
+<!-- ── Quick links ── -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <a href="/bmi" class="tahila-card p-3 d-flex align-items-center gap-3 text-decoration-none" style="transition:border-color .2s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--dark-border)'">
+            <div style="width:44px;height:44px;background:rgba(255,45,120,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="fas fa-calculator" style="color:var(--primary)"></i>
+            </div>
+            <div><div style="font-weight:700;font-size:.9rem">محاسبه BMI</div><div style="color:var(--gray);font-size:.78rem">اندازه‌گیری جدید</div></div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/nutrition" class="tahila-card p-3 d-flex align-items-center gap-3 text-decoration-none" onmouseover="this.style.borderColor='#22c55e'" onmouseout="this.style.borderColor='var(--dark-border)'">
+            <div style="width:44px;height:44px;background:rgba(34,197,94,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="fas fa-leaf" style="color:#22c55e"></i>
+            </div>
+            <div><div style="font-weight:700;font-size:.9rem">مرکز تغذیه</div><div style="color:var(--gray);font-size:.78rem">مقالات تخصصی</div></div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="/offline-classes" class="tahila-card p-3 d-flex align-items-center gap-3 text-decoration-none" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='var(--dark-border)'">
+            <div style="width:44px;height:44px;background:rgba(99,102,241,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="fas fa-play-circle" style="color:#6366f1"></i>
+            </div>
+            <div><div style="font-weight:700;font-size:.9rem">کلاس آفلاین</div><div style="color:var(--gray);font-size:.78rem">دوره‌های تمرینی</div></div>
+        </a>
+    </div>
+</div>
+
+<!-- ── Payment history ── -->
+<div class="tahila-card p-4">
+    <h6 style="font-weight:700;margin-bottom:1.5rem"><i class="fas fa-history me-2" style="color:var(--primary)"></i>تاریخچه پرداخت‌ها</h6>
+    @if (payments.Any())
+    {
+        <div style="overflow-x:auto">
+            <table class="table-tahila w-100">
+                <thead><tr><th>پلن</th><th>مبلغ</th><th>کد پیگیری</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+                <tbody>
+                @foreach (var p in payments)
+                {
+                    <tr>
+                        <td>@(p.Subscription?.Plan?.Name ?? "—")</td>
+                        <td style="color:var(--primary);font-weight:700">@p.Amount.ToString("N0") تومان</td>
+                        <td style="font-size:.8rem;color:var(--gray)">@(p.RefId ?? "—")</td>
+                        <td>
+                            @switch(p.Status)
+                            {
+                                case Tahila.Domain.Enums.PaymentStatus.Success: <span class="badge-active">موفق</span> break;
+                                case Tahila.Domain.Enums.PaymentStatus.Pending: <span class="badge-pending">در انتظار</span> break;
+                                default: <span class="badge-inactive">ناموفق</span> break;
+                            }
+                        </td>
+                        <td style="color:var(--gray);font-size:.85rem">@p.CreatedAt.ToString("yyyy/MM/dd")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-4" style="color:var(--gray)">
+            <i class="fas fa-credit-card" style="font-size:2rem;opacity:.3"></i>
+            <p class="mt-2">تاریخچه‌ای وجود ندارد</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+@if (bmiHistory.Any())
+{
+    var labels = string.Join(",", bmiHistory.Select(b => $"'{b.CreatedAt:MM/dd}'"));
+    var values = string.Join(",", bmiHistory.Select(b => b.BMI.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)));
+    <text>
+    const ctx = document.getElementById('bmiChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [@Html.Raw(labels)],
+          datasets: [{
+            label: 'BMI',
+            data: [@Html.Raw(values)],
+            borderColor: '#ff2d78',
+            backgroundColor: 'rgba(255,45,120,.08)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#ff2d78',
+            pointRadius: 5,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1a1a2e',
+              borderColor: '#ff2d78',
+              borderWidth: 1,
+              titleColor: '#fff',
+              bodyColor: '#9ca3af',
+              callbacks: {
+                label: ctx => ' BMI: ' + ctx.parsed.y
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,.04)' } },
+            y: {
+              ticks: { color: '#6b7280' },
+              grid: { color: 'rgba(255,255,255,.04)' },
+              min: 14, max: 40,
+              annotations: {
+                normal: { type: 'box', yMin: 18.5, yMax: 24.9, backgroundColor: 'rgba(34,197,94,.05)' }
+              }
+            }
+          }
+        }
+      });
+    }
+    </text>
+}
+</script>
+}

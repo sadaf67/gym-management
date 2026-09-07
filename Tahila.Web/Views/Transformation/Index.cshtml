@@ -1,0 +1,245 @@
+@model IEnumerable<Tahila.Domain.Entities.Transformation>
+@{ ViewData["Title"] = "داستان‌های موفقیت"; }
+
+@section Styles {
+<style>
+.trans-hero { padding:80px 0 50px; background:linear-gradient(135deg,rgba(245,158,11,.06) 0%,rgba(13,13,13,1) 60%); }
+.trans-card { background:var(--dark-card);border:1px solid var(--dark-border);border-radius:20px;overflow:hidden;transition:all .3s; }
+.trans-card:hover { border-color:#f59e0b;box-shadow:0 16px 40px rgba(245,158,11,.1); }
+.before-after { display:grid;grid-template-columns:1fr 1fr;gap:4px;aspect-ratio:2/1; }
+.before-after .side { position:relative;overflow:hidden; }
+.before-after .side img { width:100%;height:100%;object-fit:cover;transition:transform .4s; }
+.trans-card:hover .side img { transform:scale(1.04); }
+.side-label { position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:6px; }
+.side-label.after { background:rgba(245,158,11,.8); }
+.goal-pill { display:inline-block;padding:3px 12px;border-radius:20px;font-size:.72rem;font-weight:700;background:rgba(245,158,11,.12);color:#f59e0b; }
+
+/* ── Carousel ── */
+.trans-carousel-outer { position:relative; padding:0 40px; }  /* جای فلش‌ها */
+.trans-carousel-wrap  { overflow:hidden; }
+.trans-carousel { display:flex; gap:24px; overflow:visible; direction:ltr; transition:transform .45s cubic-bezier(.4,0,.2,1); }
+.trans-slide { flex:0 0 calc(33.333% - 16px); min-width:280px; transition:transform .4s cubic-bezier(.4,0,.2,1); }
+@@media(max-width:991px){ .trans-slide{ flex:0 0 calc(50% - 12px); } }
+@@media(max-width:600px){ .trans-slide{ flex:0 0 calc(90%); } }
+
+/* فلش‌های ناوبری */
+.carousel-arrow {
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:48px; height:48px; border-radius:50%;
+    background:var(--dark-card); border:2px solid var(--dark-border);
+    color:var(--gray-light); cursor:pointer; z-index:10;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .25s; box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+.carousel-arrow:hover { border-color:#f59e0b; color:#f59e0b; background:rgba(245,158,11,.1); }
+.carousel-arrow:disabled { opacity:.2; cursor:not-allowed; }
+.carousel-arrow.ca-prev { right:0; }   /* RTL: قبلی = راست */
+.carousel-arrow.ca-next { left:0; }    /* RTL: بعدی = چپ  */
+
+/* مثلث داخل دکمه */
+.carousel-arrow.ca-prev::after {
+    content:'';
+    border-top:8px solid transparent;
+    border-bottom:8px solid transparent;
+    border-left:12px solid currentColor;
+    display:block; margin-right:-2px;
+}
+.carousel-arrow.ca-next::after {
+    content:'';
+    border-top:8px solid transparent;
+    border-bottom:8px solid transparent;
+    border-right:12px solid currentColor;
+    display:block; margin-left:-2px;
+}
+
+/* Dots carousel */
+.carousel-dots { display:flex; justify-content:center; gap:8px; margin-top:1.4rem; }
+.carousel-dot  { width:8px; height:8px; border-radius:50%; background:var(--dark-border); cursor:pointer; transition:all .3s; border:none; }
+.carousel-dot.active { background:#f59e0b; width:24px; border-radius:4px; }
+
+@@media(max-width:767px){
+    .trans-carousel-outer { padding:0 36px; }
+    .carousel-arrow { width:38px; height:38px; }
+}
+</style>
+}
+
+<section class="trans-hero">
+<div class="container">
+    <div class="text-center mb-5">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);padding:6px 18px;border-radius:30px;margin-bottom:1rem">
+            <i class="fas fa-trophy" style="color:#f59e0b;font-size:.85rem"></i>
+            <span style="color:#f59e0b;font-size:.82rem;font-weight:700">داستان‌های موفقیت واقعی</span>
+        </div>
+        <h1 class="section-title">تبدیل‌های <span style="color:#f59e0b">شگفت‌انگیز</span></h1>
+        <div class="section-divider mx-auto"></div>
+        <p style="color:var(--gray);max-width:560px;margin:0 auto">اعضای واقعی تهیلا که با برنامه‌ریزی صحیح زندگی‌شون رو تغییر دادن</p>
+    </div>
+
+    @if (Model.Any())
+    {
+        <!-- Stats -->
+        <div style="background:var(--dark-card);border:1px solid var(--dark-border);border-radius:16px;padding:1.2rem 2rem" class="d-flex justify-content-center flex-wrap gap-3 mb-5">
+            <div style="text-align:center;padding:0 1.5rem;border-left:1px solid var(--dark-border)">
+                <div style="font-size:1.6rem;font-weight:900;color:#f59e0b" data-counter="@Model.Count()">@Model.Count()</div>
+                <div style="font-size:.78rem;color:var(--gray)">داستان موفقیت</div>
+            </div>
+            <div style="text-align:center;padding:0 1.5rem;border-left:1px solid var(--dark-border)">
+                <div style="font-size:1.6rem;font-weight:900;color:#22c55e" data-counter="@Model.Sum(t => t.WeightLost).ToString("F0")">@Model.Sum(t => t.WeightLost).ToString("F0")</div>
+                <div style="font-size:.78rem;color:var(--gray)">کیلو کل کاهش وزن</div>
+            </div>
+            <div style="text-align:center;padding:0 1.5rem">
+                <div style="font-size:1.6rem;font-weight:900;color:var(--primary)">@Model.Average(t => t.DurationMonths).ToString("F0") ماه</div>
+                <div style="font-size:.78rem;color:var(--gray)">میانگین مدت برنامه</div>
+            </div>
+        </div>
+
+        <!-- ── Carousel با فلش ── -->
+        <div class="trans-carousel-outer">
+            <!-- فلش راست (قبلی — RTL) -->
+            <button class="carousel-arrow ca-prev" id="transPrev" title="قبلی" disabled></button>
+            <!-- فلش چپ (بعدی — RTL) -->
+            <button class="carousel-arrow ca-next" id="transNext" title="بعدی"></button>
+
+            <div class="trans-carousel-wrap">
+            <div class="trans-carousel" id="transCarousel" dir="ltr">
+            @foreach (var t in Model)
+            {
+                <div class="trans-slide" dir="rtl">
+                    <div class="trans-card">
+                        <div class="before-after">
+                            <div class="side">
+                                @if (!string.IsNullOrEmpty(t.BeforeImageUrl))
+                                { <img src="@t.BeforeImageUrl" alt="قبل"/> }
+                                else
+                                { <div style="background:rgba(255,255,255,.04);height:100%;min-height:160px;display:flex;align-items:center;justify-content:center"><i class="fas fa-user" style="font-size:2rem;color:#444"></i></div> }
+                                <div class="side-label">قبل</div>
+                            </div>
+                            <div class="side">
+                                @if (!string.IsNullOrEmpty(t.AfterImageUrl))
+                                { <img src="@t.AfterImageUrl" alt="بعد"/> }
+                                else
+                                { <div style="background:rgba(245,158,11,.06);height:100%;min-height:160px;display:flex;align-items:center;justify-content:center"><i class="fas fa-user" style="font-size:2rem;color:#f59e0b"></i></div> }
+                                <div class="side-label after">بعد</div>
+                            </div>
+                        </div>
+                        <div style="padding:1.2rem">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <div style="font-weight:700">@t.MemberName</div>
+                                    @if (!string.IsNullOrEmpty(t.MemberTitle))
+                                    { <div style="color:var(--gray);font-size:.78rem">@t.MemberTitle</div> }
+                                </div>
+                                <span class="goal-pill">@t.Goal</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(t.Description))
+                            { <p style="color:var(--gray);font-size:.83rem;line-height:1.6;margin-bottom:.8rem">@t.Description</p> }
+                            <div class="d-flex gap-3 flex-wrap">
+                                @if (t.WeightLost > 0)
+                                { <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:5px 12px;text-align:center"><div style="font-weight:900;color:#22c55e;font-size:1rem">@t.WeightLost kg−</div><div style="font-size:.68rem;color:var(--gray)">کاهش وزن</div></div> }
+                                <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:5px 12px;text-align:center">
+                                    <div style="font-weight:900;color:#f59e0b;font-size:1rem">@t.DurationMonths ماه</div>
+                                    <div style="font-size:.68rem;color:var(--gray)">مدت برنامه</div>
+                                </div>
+                                @if (t.StartBmi.HasValue && t.EndBmi.HasValue)
+                                { <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:5px 12px;text-align:center"><div style="font-weight:900;color:#6366f1;font-size:1rem">@t.StartBmi→@t.EndBmi</div><div style="font-size:.68rem;color:var(--gray)">BMI</div></div> }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            </div>
+            </div><!-- /trans-carousel-wrap -->
+        </div><!-- /trans-carousel-outer -->
+
+        <!-- Dots -->
+        <div class="carousel-dots" id="transDots"></div>
+    }
+    else
+    {
+        <div class="text-center py-5" style="color:var(--gray)">
+            <i class="fas fa-trophy" style="font-size:3rem;opacity:.3"></i>
+            <p class="mt-3">به زودی داستان‌های موفقیت اضافه می‌شه</p>
+        </div>
+    }
+
+    @section Scripts {
+    <script>
+    (function(){
+        const carousel = document.getElementById('transCarousel');
+        if (!carousel) return;
+        const slides   = carousel.querySelectorAll('.trans-slide');
+        const btnPrev  = document.getElementById('transPrev');
+        const btnNext  = document.getElementById('transNext');
+        const dotsWrap = document.getElementById('transDots');
+        if (!slides.length) return;
+
+        // تعیین تعداد کارت‌های قابل نمایش
+        function visibleCount() {
+            const w = carousel.closest('.trans-carousel-outer').offsetWidth;
+            if (w < 600)  return 1;
+            if (w < 992)  return 2;
+            return 3;
+        }
+
+        let current = 0;
+        const total = slides.length;
+
+        // ساخت dots
+        slides.forEach((_, i) => {
+            const d = document.createElement('button');
+            d.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+            d.addEventListener('click', () => goTo(i));
+            dotsWrap.appendChild(d);
+        });
+        const dots = dotsWrap.querySelectorAll('.carousel-dot');
+
+        function goTo(n) {
+            const vc  = visibleCount();
+            const max = Math.max(0, total - vc);
+            current   = Math.max(0, Math.min(n, max));
+
+            // محاسبه عرض هر slide
+            const slideW  = slides[0].offsetWidth;
+            const gap     = 24;
+            const offset  = current * (slideW + gap);
+            carousel.style.transform = `translateX(-${offset}px)`;
+
+            // آپدیت dots
+            dots.forEach((d, i) => d.classList.toggle('active', i === current));
+
+            // دکمه‌ها
+            btnPrev.disabled = current === 0;
+            btnNext.disabled = current >= max;
+        }
+
+        btnPrev.addEventListener('click', () => goTo(current - 1));
+        btnNext.addEventListener('click', () => goTo(current + 1));
+
+        // touch/swipe support
+        let startX = 0;
+        carousel.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+        carousel.addEventListener('touchend',   e => {
+            const diff = startX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) goTo(current + (diff > 0 ? 1 : -1));
+        }, {passive:true});
+
+        // resize
+        window.addEventListener('resize', () => goTo(current));
+
+        goTo(0);
+    })();
+    </script>
+    }
+
+    <!-- CTA -->
+    <div class="text-center mt-5 pt-4">
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(255,45,120,.05));border:1px solid rgba(245,158,11,.2);border-radius:20px;padding:2.5rem">
+            <div style="font-size:2.5rem;margin-bottom:.5rem">🏆</div>
+            <h4 style="font-weight:900;margin-bottom:.5rem">داستان موفقیت بعدی تو باشه!</h4>
+            <p style="color:var(--gray);margin-bottom:1.5rem">از همین امروز با محاسبه BMI شروع کن</p>
+            <a href="/bmi" class="btn-primary-tahila"><i class="fas fa-calculator me-2"></i>شروع رایگان</a>
+        </div>
+    </div>
+</div>
+</section>

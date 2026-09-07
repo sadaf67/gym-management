@@ -1,0 +1,121 @@
+@{
+    ViewData["Title"] = "داشبورد";
+    ViewData["PageTitle"] = "داشبورد";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+            <div>
+                <div class="value">@((ViewBag.TotalRevenue as decimal? ?? 0).ToString("N0"))</div>
+                <div class="label">درآمد کل (تومان)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-user-tie"></i></div>
+            <div>
+                <div class="value">@ViewBag.TotalCoaches</div>
+                <div class="label">مربیان</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-dumbbell"></i></div>
+            <div>
+                <div class="value">@ViewBag.TotalClasses</div>
+                <div class="label">کلاس‌ها</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-tags"></i></div>
+            <div>
+                <div class="value">@ViewBag.TotalPlans</div>
+                <div class="label">پلن‌های عضویت</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Payments -->
+<div class="tahila-card p-4">
+    <h6 style="font-weight:700;margin-bottom:1.5rem">
+        <i class="fas fa-credit-card me-2" style="color:var(--primary)"></i>
+        آخرین پرداخت‌ها
+    </h6>
+    <div style="overflow-x:auto">
+        <table class="table-tahila w-100">
+            <thead>
+                <tr>
+                    <th>کاربر</th>
+                    <th>مبلغ</th>
+                    <th>درگاه</th>
+                    <th>وضعیت</th>
+                    <th>تاریخ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in ViewBag.RecentPayments as IEnumerable<Tahila.Domain.Entities.Payment> ?? [])
+                {
+                    <tr>
+                        <td>@p.UserId</td>
+                        <td>@p.Amount.ToString("N0") تومان</td>
+                        <td>@p.Gateway</td>
+                        <td>
+                            @switch (p.Status)
+                            {
+                                case Tahila.Domain.Enums.PaymentStatus.Success:
+                                    <span class="badge-active">موفق</span>
+                                    break;
+                                case Tahila.Domain.Enums.PaymentStatus.Pending:
+                                    <span class="badge-pending">در انتظار</span>
+                                    break;
+                                default:
+                                    <span class="badge-inactive">ناموفق</span>
+                                    break;
+                            }
+                        </td>
+                        <td>@p.CreatedAt.ToString("yyyy/MM/dd")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-3">
+        <a href="/Admin/Payments" style="color:var(--primary);font-size:.9rem">مشاهده همه پرداخت‌ها ←</a>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="row g-3 mt-2">
+    <div class="col-6 col-md-3">
+        <a href="/Admin/Sliders/Create" class="tahila-card p-3 text-center d-block text-decoration-none">
+            <i class="fas fa-plus-circle" style="color:var(--primary);font-size:1.5rem"></i>
+            <div style="font-size:.85rem;margin-top:8px">اضافه کردن اسلایدر</div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/Admin/Coaches/Create" class="tahila-card p-3 text-center d-block text-decoration-none">
+            <i class="fas fa-user-plus" style="color:var(--primary);font-size:1.5rem"></i>
+            <div style="font-size:.85rem;margin-top:8px">افزودن مربی</div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/Admin/Classes/Create" class="tahila-card p-3 text-center d-block text-decoration-none">
+            <i class="fas fa-dumbbell" style="color:var(--primary);font-size:1.5rem"></i>
+            <div style="font-size:.85rem;margin-top:8px">افزودن کلاس</div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/Admin/SiteSettings" class="tahila-card p-3 text-center d-block text-decoration-none">
+            <i class="fas fa-gear" style="color:var(--primary);font-size:1.5rem"></i>
+            <div style="font-size:.85rem;margin-top:8px">تنظیمات سایت</div>
+        </a>
+    </div>
+</div>

@@ -1,0 +1,329 @@
+@model Tahila.Domain.Entities.BodyAnalysis
+@{ ViewData["Title"] = "محاسبه BMI و تحلیل بدن"; }
+
+@section Styles {
+<style>
+.bmi-hero { background: linear-gradient(135deg, rgba(255,45,120,.12) 0%, rgba(13,13,13,1) 60%); padding: 70px 0 60px; }
+
+/* ── Wizard container ── */
+.wizard-wrap { position: relative; overflow: hidden; }
+.wizard-track { display: flex; transition: transform .45s cubic-bezier(.4,0,.2,1); will-change: transform; }
+.wizard-step  { min-width: 100%; padding: 0 2px; }
+
+/* ── Cards ── */
+.input-card { background: var(--dark-card); border: 1px solid var(--dark-border); border-radius: 20px; padding: 2rem 2rem 1.8rem; }
+
+/* ── Progress dots ── */
+.wizard-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 1.6rem; }
+.wizard-dot  { width: 8px; height: 8px; border-radius: 50%; background: var(--dark-border); transition: all .3s; cursor: pointer; }
+.wizard-dot.active { background: var(--primary); width: 24px; border-radius: 4px; }
+
+/* ── Step label ── */
+.step-label { text-align: center; color: var(--gray); font-size: .78rem; margin-bottom: 1.2rem; letter-spacing: 1px; }
+.step-label span { color: var(--primary); font-weight: 700; }
+
+/* ── Arrow buttons ── */
+.wizard-arrows { display: flex; justify-content: space-between; align-items: center; margin-top: 1.4rem; gap: 12px; }
+.arrow-btn {
+    width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--dark-border);
+    background: var(--dark-card); color: var(--gray-light); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .25s; flex-shrink: 0; font-size: 0; position: relative;
+}
+.arrow-btn:hover:not(:disabled) { border-color: var(--primary); background: rgba(255,45,120,.1); color: var(--primary); }
+.arrow-btn:disabled { opacity: .25; cursor: not-allowed; }
+
+/* مثلث راست (قبلی - RTL) */
+.arrow-btn.next::after {
+    content: '';
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+    border-left: 14px solid currentColor;
+    display: block;
+    margin-right: -2px;
+}
+/* مثلث چپ (بعدی - RTL) */
+.arrow-btn.prev::after {
+    content: '';
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+    border-right: 14px solid currentColor;
+    display: block;
+    margin-left: -2px;
+}
+.arrow-btn.next { color: var(--gray-light); }
+.arrow-btn.prev { color: var(--primary); border-color: var(--primary); background: rgba(255,45,120,.08); }
+
+.wizard-step-counter { color: var(--gray); font-size: .85rem; }
+.wizard-step-counter b { color: var(--primary); }
+
+/* ── Inputs ── */
+.range-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--dark-border); outline: none; }
+.range-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 0 8px rgba(255,45,120,.5); }
+.gender-btn { padding: 14px 30px; border-radius: 14px; border: 2px solid var(--dark-border); background: var(--dark-card); color: var(--gray-light); cursor: pointer; transition: all .3s; font-size: 1rem; font-weight: 600; }
+.gender-btn.active, .gender-btn:hover { border-color: var(--primary); background: rgba(255,45,120,.1); color: var(--primary); }
+.activity-btn { padding: 10px 18px; border-radius: 10px; border: 1px solid var(--dark-border); background: var(--dark-card); color: var(--gray-light); cursor: pointer; transition: all .3s; font-size: .85rem; }
+.activity-btn.active { border-color: var(--primary); background: rgba(255,45,120,.1); color: var(--primary); }
+.val-badge { background: rgba(255,45,120,.15); color: var(--primary); font-weight: 900; font-size: 1.4rem; padding: 4px 16px; border-radius: 10px; min-width: 80px; text-align: center; display: inline-block; }
+.section-label { color: var(--gray); font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+/* step icon */
+.step-icon { width: 56px; height: 56px; background: rgba(255,45,120,.12); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; }
+.step-icon i { font-size: 1.4rem; color: var(--primary); }
+</style>
+}
+
+<section class="bmi-hero">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="section-title">تحلیل کامل <span>بدن</span></h1>
+            <div class="section-divider mx-auto"></div>
+            <p style="color:var(--gray);max-width:550px;margin:0 auto">BMI، درصد چربی، متابولیسم پایه و توصیه‌های شخصی — همه رایگان</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+
+                <!-- Dots -->
+                <div class="wizard-dots" id="wizardDots">
+                    <div class="wizard-dot active" data-step="0"></div>
+                    <div class="wizard-dot" data-step="1"></div>
+                    <div class="wizard-dot" data-step="2"></div>
+                    <div class="wizard-dot" data-step="3"></div>
+                    <div class="wizard-dot" data-step="4"></div>
+                    <div class="wizard-dot" data-step="5"></div>
+                </div>
+
+                <!-- Step label -->
+                <div class="step-label" id="stepLabel">مرحله <span id="stepNum">۱</span> از <span>۶</span></div>
+
+                <form method="post" action="/bmi" id="bmiForm" class="form-tahila">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Wizard track (direction:ltr تا اسلایدر درست کار کنه) -->
+                    <div class="wizard-wrap">
+                        <div class="wizard-track" id="wizardTrack" style="direction:ltr">
+
+                            <!-- ── Step 1: جنسیت ── -->
+                            <div class="wizard-step" style="direction:rtl">
+                                <div class="input-card">
+                                    <div class="step-icon"><i class="fas fa-venus-mars"></i></div>
+                                    <div class="section-label text-center">جنسیت شما</div>
+                                    <div class="d-flex gap-3 justify-content-center mt-3">
+                                        <button type="button" class="gender-btn active" data-gender="true" id="btnMale">
+                                            <i class="fas fa-mars me-2"></i>آقا
+                                        </button>
+                                        <button type="button" class="gender-btn" data-gender="false" id="btnFemale">
+                                            <i class="fas fa-venus me-2"></i>خانم
+                                        </button>
+                                    </div>
+                                    <input type="hidden" name="IsMale" id="IsMale" value="true"/>
+                                </div>
+                            </div>
+
+                            <!-- ── Step 2: وزن ── -->
+                            <div class="wizard-step" style="direction:rtl">
+                                <div class="input-card">
+                                    <div class="step-icon"><i class="fas fa-weight-hanging"></i></div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="section-label mb-0">وزن</div>
+                                        <span class="val-badge" id="weightVal">70 kg</span>
+                                    </div>
+                                    <input type="range" class="range-slider" id="weightSlider" min="30" max="200" value="70" step="0.5"/>
+                                    <div class="d-flex justify-content-between mt-2" style="color:var(--gray);font-size:.75rem"><span>۳۰ کیلو</span><span>۲۰۰ کیلو</span></div>
+                                    <input type="hidden" name="Weight" id="Weight" value="70"/>
+                                </div>
+                            </div>
+
+                            <!-- ── Step 3: قد ── -->
+                            <div class="wizard-step" style="direction:rtl">
+                                <div class="input-card">
+                                    <div class="step-icon"><i class="fas fa-ruler-vertical"></i></div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="section-label mb-0">قد</div>
+                                        <span class="val-badge" id="heightVal">170 cm</span>
+                                    </div>
+                                    <input type="range" class="range-slider" id="heightSlider" min="130" max="220" value="170" step="1"/>
+                                    <div class="d-flex justify-content-between mt-2" style="color:var(--gray);font-size:.75rem"><span>۱۳۰ سانت</span><span>۲۲۰ سانت</span></div>
+                                    <input type="hidden" name="Height" id="Height" value="170"/>
+                                </div>
+                            </div>
+
+                            <!-- ── Step 4: سن ── -->
+                            <div class="wizard-step" style="direction:rtl">
+                                <div class="input-card">
+                                    <div class="step-icon"><i class="fas fa-birthday-cake"></i></div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="section-label mb-0">سن</div>
+                                        <span class="val-badge" id="ageVal">25 سال</span>
+                                    </div>
+                                    <input type="range" class="range-slider" id="ageSlider" min="10" max="90" value="25" step="1"/>
+                                    <div class="d-flex justify-content-between mt-2" style="color:var(--gray);font-size:.75rem"><span>۱۰ سال</span><span>۹۰ سال</span></div>
+                                    <input type="hidden" name="Age" id="Age" value="25"/>
+                                </div>
+                            </div>
+
+                            <!-- ── Step 5: سطح فعالیت ── -->
+                            <div class="wizard-step" style="direction:rtl">
+                                <div class="input-card">
+                                    <div class="step-icon"><i class="fas fa-running"></i></div>
+                                    <div class="section-label text-center">سطح فعالیت</div>
+                                    <div class="d-flex gap-2 flex-wrap justify-content-center mt-3">
+                                        <button type="button" class="activity-btn" data-level="1">کم تحرک</button>
+                                        <button type="button" class="activity-btn active" data-level="2">متوسط</button>
+                                        <button type="button" class="activity-btn" data-level="3">فعال</button>
+                                        <button type="button" class="activity-btn" data-level="4">خیلی فعال</button>
+                                    </div>
+                                    <div style="color:var(--gray);font-size:.82rem;margin-top:14px;text-align:center;min-height:20px" id="activityDesc">
+                                        ورزش ۳-۵ روز در هفته
+                                    </div>
+                                    <input type="hidden" name="ActivityLevel" id="ActivityLevel" value="2"/>
+                                </div>
+                            </div>
+
+                            <!-- ── Step 6: اندازه‌های تکمیلی ── -->
+                            <div class="wizard-step" style="direction:rtl">
+                                <div class="input-card">
+                                    <div class="step-icon"><i class="fas fa-ruler-combined"></i></div>
+                                    <div class="section-label text-center">اندازه‌های تکمیلی <small style="color:var(--gray)">(اختیاری — برای دقت بیشتر)</small></div>
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-4">
+                                            <label style="color:var(--gray-light);font-size:.85rem">دور کمر (سانتی‌متر)</label>
+                                            <input class="form-control" type="number" name="WaistCircumference" min="40" max="200" step="0.5" placeholder="مثال: ۸۰"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label style="color:var(--gray-light);font-size:.85rem">دور باسن (سانتی‌متر)</label>
+                                            <input class="form-control" type="number" name="HipCircumference" min="40" max="200" step="0.5" placeholder="مثال: ۹۵"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label style="color:var(--gray-light);font-size:.85rem">دور گردن (سانتی‌متر)</label>
+                                            <input class="form-control" type="number" name="NeckCircumference" min="20" max="80" step="0.5" placeholder="مثال: ۳۵"/>
+                                        </div>
+                                    </div>
+
+                                    @if (User.Identity?.IsAuthenticated != true)
+                                    {
+                                        <div style="background:rgba(255,45,120,.05);border:1px solid rgba(255,45,120,.15);border-radius:12px;padding:12px 16px;margin-top:1.2rem;font-size:.9rem;color:var(--gray-light)">
+                                            <i class="fas fa-info-circle me-2" style="color:var(--primary)"></i>
+                                            با <a href="/account/login" style="color:var(--primary)">ورود به حساب</a> نتایج ذخیره می‌شود.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                        </div><!-- /wizard-track -->
+                    </div><!-- /wizard-wrap -->
+
+                    <!-- Arrows -->
+                    <div class="wizard-arrows" id="wizardArrows">
+                        <button type="button" class="arrow-btn next" id="btnNext" title="مرحله بعد"></button>
+                        <span class="wizard-step-counter"><b id="counterCur">۱</b> / <span>۶</span></span>
+                        <button type="button" class="arrow-btn prev" id="btnPrev" title="مرحله قبل" disabled></button>
+                    </div>
+
+                    <!-- Submit — فقط در مرحله آخر نشون داده میشه -->
+                    <button type="submit" class="btn-primary-tahila w-100 text-center mt-3" id="submitBtn"
+                            style="font-size:1.1rem;padding:16px;display:none">
+                        <i class="fas fa-calculator me-2"></i>محاسبه و مشاهده نتیجه
+                    </button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+// ── Sliders ──────────────────────────────────────────
+function linkSlider(sliderId, hiddenId, valId, unit) {
+    const slider = document.getElementById(sliderId);
+    const hidden = document.getElementById(hiddenId);
+    const val    = document.getElementById(valId);
+    slider.addEventListener('input', () => {
+        hidden.value = slider.value;
+        val.textContent = slider.value + (unit || '');
+    });
+}
+linkSlider('weightSlider','Weight','weightVal',' kg');
+linkSlider('heightSlider','Height','heightVal',' cm');
+linkSlider('ageSlider',   'Age',   'ageVal',   ' سال');
+
+// ── Gender ───────────────────────────────────────────
+document.querySelectorAll('.gender-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('IsMale').value = btn.dataset.gender;
+    });
+});
+
+// ── Activity ─────────────────────────────────────────
+const actDesc = ['','کمتر از ۱ روز در هفته ورزش','ورزش ۳-۵ روز در هفته','ورزش سنگین ۶-۷ روز در هفته','ورزشکار حرفه‌ای / کار بدنی'];
+document.querySelectorAll('.activity-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('ActivityLevel').value = btn.dataset.level;
+        document.getElementById('activityDesc').textContent = actDesc[btn.dataset.level] || '';
+    });
+});
+
+// ── Wizard ───────────────────────────────────────────
+const TOTAL    = 6;
+const persNums = ['۱','۲','۳','۴','۵','۶'];
+let current    = 0;
+
+const track      = document.getElementById('wizardTrack');
+const btnNext    = document.getElementById('btnNext');    // ► راست = برگشت
+const btnPrev    = document.getElementById('btnPrev');    // ◄ چپ  = ادامه
+const submitBtn  = document.getElementById('submitBtn');
+const arrowsRow  = document.getElementById('wizardArrows');
+const dots       = document.querySelectorAll('.wizard-dot');
+const stepNum    = document.getElementById('stepNum');
+const counterCur = document.getElementById('counterCur');
+
+function goTo(n) {
+    if (n < 0 || n >= TOTAL) return;
+    current = n;
+
+    // LTR track → منفی برای رفتن به جلو
+    track.style.transform = `translateX(${-current * 100}%)`;
+
+    // dots
+    dots.forEach((d,i) => d.classList.toggle('active', i === current));
+
+    // شماره مرحله فارسی
+    stepNum.textContent    = persNums[current];
+    counterCur.textContent = persNums[current];
+
+    const isLast  = current === TOTAL - 1;
+    const isFirst = current === 0;
+
+    // دکمه برگشت (►) — در مرحله اول غیرفعاله
+    btnNext.disabled = isFirst;
+    btnNext.style.opacity = isFirst ? '0.25' : '1';
+
+    // دکمه ادامه (◄) — در مرحله آخر مخفی، به جاش submit نشون داده میشه
+    btnPrev.style.display = isLast ? 'none' : '';
+    btnPrev.disabled      = false;
+
+    // submit button
+    if (isLast) {
+        submitBtn.style.removeProperty('display');
+        submitBtn.style.display = 'block';
+    } else {
+        submitBtn.style.display = 'none';
+    }
+}
+
+btnNext.addEventListener('click', () => goTo(current - 1)); // برگشت
+btnPrev.addEventListener('click', () => goTo(current + 1)); // ادامه
+
+// کلیک روی dot ها
+dots.forEach((d,i) => d.addEventListener('click', () => goTo(i)));
+
+// init
+goTo(0);
+</script>
+}

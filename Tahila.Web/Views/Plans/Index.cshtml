@@ -1,0 +1,42 @@
+@model IEnumerable<Tahila.Domain.Entities.Plan>
+@{ ViewData["Title"] = "پلن‌های عضویت"; }
+
+<section style="padding:80px 0 40px">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="section-title">پلن‌های <span>عضویت</span></h1>
+            <div class="section-divider mx-auto"></div>
+            <p style="color:var(--gray)">پلن مناسب خودت رو انتخاب کن و همین الان شروع کن</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            @foreach (var plan in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="tahila-card plan-card @(plan.IsPopular ? "popular" : "")">
+                        <div class="plan-name">@plan.Name</div>
+                        @if (!string.IsNullOrEmpty(plan.Description))
+                        { <p style="color:var(--gray);font-size:.9rem;margin:.5rem 0">@plan.Description</p> }
+                        <div class="plan-price mt-2">@plan.Price.ToString("N0") <span>تومان</span></div>
+                        <div style="color:var(--gray);font-size:.85rem;margin:.5rem 0">مدت: @plan.DurationDays روز</div>
+                        @if (!string.IsNullOrEmpty(plan.Features))
+                        {
+                            <ul class="plan-features text-end">
+                                @foreach (var f in plan.Features.Split('\n').Where(f => !string.IsNullOrWhiteSpace(f)))
+                                { <li>@f.Trim()</li> }
+                            </ul>
+                        }
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a href="/payment/request/@plan.Id" class="btn-primary-tahila w-100 d-block text-center mt-3">خرید اشتراک</a>
+                        }
+                        else
+                        {
+                            <a href="/account/login?returnUrl=/plans" class="btn-primary-tahila w-100 d-block text-center mt-3">ورود و خرید</a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

@@ -1,0 +1,28 @@
+@model IEnumerable<Tahila.Domain.Entities.Coach>
+@{ ViewData["Title"] = "مربیان"; }
+
+<section style="padding:80px 0 40px">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="section-title">مربیان <span>متخصص</span></h1>
+            <div class="section-divider mx-auto"></div>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            @foreach (var coach in Model)
+            {
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="tahila-card coach-card p-4">
+                        <img src="@(coach.ImagePath ?? "/images/default-coach.jpg")" alt="@coach.FullName"/>
+                        <div class="coach-name mt-2">@coach.FullName</div>
+                        <div class="coach-specialty">@coach.Specialty</div>
+                        @if (!string.IsNullOrEmpty(coach.Bio))
+                        { <p style="color:var(--gray);font-size:.85rem;margin-top:.8rem;line-height:1.7">@coach.Bio</p> }
+                        @if (!string.IsNullOrEmpty(coach.Instagram))
+                        { <a href="@coach.Instagram" target="_blank" style="color:var(--primary);font-size:.9rem"><i class="fab fa-instagram me-1"></i>اینستاگرام</a> }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

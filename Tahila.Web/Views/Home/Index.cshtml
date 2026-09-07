@@ -1,0 +1,247 @@
+﻿@model Tahila.Web.Models.HomeViewModel
+@{ ViewData["Title"] = "خانه"; }
+
+<!-- HERO SLIDER -->
+<section class="hero-section">
+    @if (Model.Sliders.Any())
+    {
+        <div class="swiper hero-swiper" style="position:absolute;inset:0;z-index:0">
+            <div class="swiper-wrapper">
+                @foreach (var s in Model.Sliders)
+                {
+                    <div class="swiper-slide">
+                        <div class="hero-bg" style="background-image:url('@s.ImagePath')"></div>
+                        <div class="hero-overlay"></div>
+                    </div>
+                }
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+        <div class="container hero-content text-center" style="position:relative;z-index:2">
+            <h1 class="hero-title">@Model.Sliders[0].Title</h1>
+            <p class="hero-subtitle">@Model.Sliders[0].SubTitle</p>
+            @if (!string.IsNullOrEmpty(Model.Sliders[0].ButtonText))
+            {
+                <a href="@(Model.Sliders[0].ButtonLink ?? "/plans")" class="btn-primary-tahila me-3">@Model.Sliders[0].ButtonText</a>
+            }
+            <a href="/classes" class="btn-outline-tahila">کلاس‌ها</a>
+        </div>
+    }
+    else
+    {
+        <div class="hero-overlay" style="background:linear-gradient(135deg,rgba(255,45,120,.2),rgba(13,13,13,.9))"></div>
+        <div class="container hero-content text-center">
+            <h1 class="hero-title">به باشگاه <span>@Model.Settings.SiteName</span> خوش آمدید</h1>
+            <p class="hero-subtitle">@Model.Settings.HeroSubTitle</p>
+            <a href="/plans" class="btn-primary-tahila me-3">همین الان شروع کن</a>
+            <a href="/classes" class="btn-outline-tahila">کلاس‌ها</a>
+        </div>
+    }
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" data-target="@(Model.Settings.MembersCount ?? 500)" data-counter="@(Model.Settings.MembersCount ?? 500)">0</div>
+                <div class="stat-label">عضو فعال</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" data-target="@(Model.Settings.CoachesCount ?? 10)" data-counter="@(Model.Settings.CoachesCount ?? 10)">0</div>
+                <div class="stat-label">مربی متخصص</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" data-target="@(Model.Settings.ClassesCount ?? 15)" data-counter="@(Model.Settings.ClassesCount ?? 15)">0</div>
+                <div class="stat-label">کلاس تخصصی</div>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <div class="stat-number" data-target="@(Model.Settings.YearsCount ?? 5)" data-counter="@(Model.Settings.YearsCount ?? 5)">0</div>
+                <div class="stat-label">سال تجربه</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CLASSES -->
+@if (Model.Classes.Any())
+{
+    <section style="padding:80px 0">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">کلاس‌های <span>تخصصی</span></h2>
+                <div class="section-divider mx-auto"></div>
+            </div>
+            <div class="row g-4">
+                @foreach (var c in Model.Classes)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="tahila-card h-100">
+                            @if (!string.IsNullOrEmpty(c.ImagePath))
+                            { <img src="@c.ImagePath" alt="@c.Name"/> }
+                            else
+                            { <div style="height:220px;background:linear-gradient(135deg,#1a1a1a,#2a2a2a);display:flex;align-items:center;justify-content:center"><i class="@(c.IconClass ?? "fas fa-dumbbell")" style="font-size:3rem;color:var(--primary)"></i></div> }
+                            <div class="card-body">
+                                <h5 class="card-title">@c.Name</h5>
+                                <p class="card-text">@c.Description</p>
+                                @if (c.Coach != null)
+                                { <small style="color:var(--primary)"><i class="fas fa-user me-1"></i>@c.Coach.FullName</small> }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-5">
+                <a href="/classes" class="btn-outline-tahila">مشاهده همه کلاس‌ها</a>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ABOUT -->
+@if (!string.IsNullOrEmpty(Model.Settings.AboutTitle))
+{
+    <section style="padding:80px 0;background:var(--dark-card)">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    @if (!string.IsNullOrEmpty(Model.Settings.AboutImage))
+                    { <img src="@Model.Settings.AboutImage" alt="درباره ما" style="width:100%;border-radius:20px;border:2px solid var(--dark-border)"/> }
+                    else
+                    { <div style="height:400px;background:linear-gradient(135deg,rgba(255,45,120,.1),rgba(13,13,13,.8));border-radius:20px;display:flex;align-items:center;justify-content:center"><i class="fas fa-dumbbell" style="font-size:6rem;color:var(--primary);opacity:.5"></i></div> }
+                </div>
+                <div class="col-lg-6">
+                    <h2 class="section-title">@Model.Settings.AboutTitle</h2>
+                    <div class="section-divider"></div>
+                    <p style="color:var(--gray-light);line-height:2">@Model.Settings.AboutText</p>
+                    <a href="/contact" class="btn-primary-tahila mt-3">تماس با ما</a>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- COACHES -->
+@if (Model.Coaches.Any())
+{
+    <section style="padding:80px 0">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">مربیان <span>متخصص</span></h2>
+                <div class="section-divider mx-auto"></div>
+            </div>
+            <div class="row g-4">
+                @foreach (var coach in Model.Coaches)
+                {
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="tahila-card coach-card p-3 text-center">
+                            <img src="@(coach.ImagePath ?? "/images/default-coach.jpg")" alt="@coach.FullName"/>
+                            <div class="coach-name">@coach.FullName</div>
+                            <div class="coach-specialty">@coach.Specialty</div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-5">
+                <a href="/coaches" class="btn-outline-tahila">مشاهده همه مربیان</a>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- PLANS -->
+@if (Model.Plans.Any())
+{
+    <section style="padding:80px 0;background:var(--dark-card)">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">پلن‌های <span>عضویت</span></h2>
+                <div class="section-divider mx-auto"></div>
+            </div>
+            <div class="row g-4 justify-content-center">
+                @foreach (var plan in Model.Plans)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="tahila-card plan-card @(plan.IsPopular ? "popular" : "")">
+                            <div class="plan-name">@plan.Name</div>
+                            <div class="plan-price">@plan.Price.ToString("N0") <span>تومان</span></div>
+                            <div style="color:var(--gray);font-size:.85rem;margin:.5rem 0">@plan.DurationDays روز</div>
+                            @if (!string.IsNullOrEmpty(plan.Features))
+                            {
+                                <ul class="plan-features">
+                                    @foreach (var f in plan.Features.Split('\n'))
+                                    { <li>@f</li> }
+                                </ul>
+                            }
+                            <a href="/plans/@plan.Id/buy" class="btn-primary-tahila w-100 text-center">خرید اشتراک</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- ── Quick Feature Links ── -->
+<section style="padding:60px 0;background:var(--dark-bg)">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3 col-6">
+                <a href="/nutrition" style="text-decoration:none">
+                    <div class="tahila-card p-4 text-center" style="transition:all .3s" onmouseover="this.style.borderColor='#22c55e';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--dark-border)';this.style.transform='translateY(0)'">
+                        <div style="width:56px;height:56px;background:rgba(34,197,94,.12);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+                            <i class="fas fa-leaf" style="font-size:1.4rem;color:#22c55e"></i>
+                        </div>
+                        <div style="font-weight:700;margin-bottom:.3rem">مرکز تغذیه</div>
+                        <div style="color:var(--gray);font-size:.78rem">مقالات تخصصی تغذیه</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="/workout" style="text-decoration:none">
+                    <div class="tahila-card p-4 text-center" style="transition:all .3s" onmouseover="this.style.borderColor='#6366f1';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--dark-border)';this.style.transform='translateY(0)'">
+                        <div style="width:56px;height:56px;background:rgba(99,102,241,.12);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+                            <i class="fas fa-dumbbell" style="font-size:1.4rem;color:#6366f1"></i>
+                        </div>
+                        <div style="font-weight:700;margin-bottom:.3rem">علم تمرین</div>
+                        <div style="color:var(--gray);font-size:.78rem">راهنمای علمی ورزش</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="/transformations" style="text-decoration:none">
+                    <div class="tahila-card p-4 text-center" style="transition:all .3s" onmouseover="this.style.borderColor='#f59e0b';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--dark-border)';this.style.transform='translateY(0)'">
+                        <div style="width:56px;height:56px;background:rgba(245,158,11,.12);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+                            <i class="fas fa-trophy" style="font-size:1.4rem;color:#f59e0b"></i>
+                        </div>
+                        <div style="font-weight:700;margin-bottom:.3rem">موفقیت‌ها</div>
+                        <div style="color:var(--gray);font-size:.78rem">داستان تغییر اعضا</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="/bmi" style="text-decoration:none">
+                    <div class="tahila-card p-4 text-center" style="transition:all .3s;border-color:rgba(255,45,120,.2)" onmouseover="this.style.borderColor='var(--primary)';this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='rgba(255,45,120,.2)';this.style.transform='translateY(0)'">
+                        <div style="width:56px;height:56px;background:rgba(255,45,120,.12);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+                            <i class="fas fa-calculator" style="font-size:1.4rem;color:var(--primary)"></i>
+                        </div>
+                        <div style="font-weight:700;margin-bottom:.3rem">محاسبه BMI</div>
+                        <div style="color:var(--gray);font-size:.78rem">تحلیل رایگان بدن</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+new Swiper('.hero-swiper', {
+  loop: true,
+  autoplay: { delay: 5000, disableOnInteraction: false },
+  pagination: { el: '.swiper-pagination', clickable: true },
+  effect: 'fade',
+  fadeEffect: { crossFade: true }
+});
+</script>
+}

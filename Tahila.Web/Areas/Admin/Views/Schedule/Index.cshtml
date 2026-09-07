@@ -1,0 +1,44 @@
+@model IEnumerable<Tahila.Domain.Entities.Schedule>
+@{ Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; ViewData["PageTitle"] = "برنامه هفتگی"; }
+
+@{
+    var days = new[] { "شنبه","یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه" };
+}
+
+<div class="d-flex justify-content-end mb-4">
+    <a href="/Admin/Schedule/Create" class="btn-primary-tahila"><i class="fas fa-plus me-2"></i>برنامه جدید</a>
+</div>
+
+<div style="overflow-x:auto">
+    <table class="schedule-table" style="min-width:700px">
+        <thead>
+            <tr>
+                @for (int i = 0; i < 7; i++) { <th>@days[i]</th> }
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                @for (int day = 0; day < 7; day++)
+                {
+                    <td style="vertical-align:top;min-width:130px">
+                        @foreach (var s in Model.Where(x => (int)x.DayOfWeek == day).OrderBy(x => x.StartTime))
+                        {
+                            <div style="background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);border-radius:8px;padding:8px;margin-bottom:6px;font-size:.82rem">
+                                <div style="font-weight:700;color:var(--primary)">@s.GymClass?.Name</div>
+                                <div style="color:var(--gray)">@s.StartTime.ToString(@"hh\:mm") - @s.EndTime.ToString(@"hh\:mm")</div>
+                                <div style="color:var(--gray-light);font-size:.78rem">@s.GymClass?.Coach?.FullName</div>
+                                <div class="d-flex gap-2 mt-1">
+                                    <a href="/Admin/Schedule/Edit/@s.Id" style="color:var(--primary);font-size:.8rem"><i class="fas fa-edit"></i></a>
+                                    <form method="post" action="/Admin/Schedule/Delete/@s.Id" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem" onclick="return confirm('حذف؟')"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    </td>
+                }
+            </tr>
+        </tbody>
+    </table>
+</div>

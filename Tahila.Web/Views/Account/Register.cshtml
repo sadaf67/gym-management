@@ -1,0 +1,62 @@
+@model Tahila.Web.Models.RegisterViewModel
+@{ ViewData["Title"] = "ثبت‌نام"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<section style="min-height:80vh;display:flex;align-items:center;padding:60px 0">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="tahila-card p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div style="font-size:2.5rem;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">ثبت‌نام</div>
+                        <p style="color:var(--gray);margin-top:.5rem">عضو باشگاه تهیلا شوید</p>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:10px;padding:12px;margin-bottom:1rem;font-size:.9rem">
+                            @Html.ValidationSummary(false)
+                        </div>
+                    }
+
+                    <form method="post" class="form-tahila">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label>نام *</label>
+                                <input class="form-control" asp-for="FirstName" required/>
+                            </div>
+                            <div class="col-6">
+                                <label>نام خانوادگی *</label>
+                                <input class="form-control" asp-for="LastName" required/>
+                            </div>
+                            <div class="col-12">
+                                <label>ایمیل *</label>
+                                <input class="form-control" asp-for="Email" type="email" required/>
+                            </div>
+                            <div class="col-12">
+                                <label>شماره موبایل *</label>
+                                <input class="form-control" asp-for="PhoneNumber" type="tel" placeholder="09xxxxxxxxx" required/>
+                            </div>
+                            <div class="col-12">
+                                <label>رمز عبور *</label>
+                                <input class="form-control" asp-for="Password" type="password" required/>
+                            </div>
+                            <div class="col-12">
+                                <label>تکرار رمز عبور *</label>
+                                <input class="form-control" asp-for="ConfirmPassword" type="password" required/>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <button type="submit" class="btn-primary-tahila w-100 text-center d-block">ثبت‌نام</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4" style="color:var(--gray);font-size:.9rem">
+                        قبلاً ثبت‌نام کرده‌اید؟
+                        <a href="/account/login" style="color:var(--primary);text-decoration:none;font-weight:700">وارد شوید</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

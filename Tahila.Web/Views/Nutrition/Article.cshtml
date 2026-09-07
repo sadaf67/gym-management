@@ -1,0 +1,151 @@
+@model Tahila.Domain.Entities.NutritionArticle
+@{
+    var related = ViewBag.Related as IEnumerable<Tahila.Domain.Entities.NutritionArticle> ?? [];
+}
+
+@section Styles {
+<style>
+.article-hero { padding:60px 0 0; background:linear-gradient(180deg,rgba(34,197,94,.06) 0%,transparent 100%); }
+.article-body { font-size:1rem;line-height:2;color:var(--gray-light); }
+.article-body h2 { font-size:1.4rem;font-weight:900;color:var(--white);margin:2rem 0 .8rem;padding-bottom:.5rem;border-bottom:2px solid rgba(34,197,94,.3); }
+.article-body h3 { font-size:1.1rem;font-weight:700;color:var(--white);margin:1.5rem 0 .6rem; }
+.article-body p  { margin-bottom:1.1rem; }
+.article-body ul,.article-body ol { margin:.5rem 0 1rem 1.5rem;color:var(--gray-light); }
+.article-body li { margin-bottom:.4rem;line-height:1.8; }
+.article-body strong { color:var(--white);font-weight:700; }
+.article-body .highlight-box { background:rgba(34,197,94,.06);border-right:4px solid #22c55e;padding:1rem 1.2rem;border-radius:0 10px 10px 0;margin:1.2rem 0;color:var(--gray-light); }
+.article-body .warning-box { background:rgba(239,68,68,.06);border-right:4px solid #ef4444;padding:1rem 1.2rem;border-radius:0 10px 10px 0;margin:1.2rem 0;color:var(--gray-light); }
+.article-body .info-box { background:rgba(59,130,246,.06);border-right:4px solid #3b82f6;padding:1rem 1.2rem;border-radius:0 10px 10px 0;margin:1.2rem 0;color:var(--gray-light); }
+.article-body table { width:100%;border-collapse:collapse;margin:1rem 0; }
+.article-body th { background:rgba(255,255,255,.06);padding:10px 14px;text-align:right;font-weight:700;border:1px solid var(--dark-border); }
+.article-body td { padding:9px 14px;border:1px solid var(--dark-border);color:var(--gray-light);font-size:.9rem; }
+.article-body tr:nth-child(even) td { background:rgba(255,255,255,.02); }
+
+.toc { background:var(--dark-card);border:1px solid var(--dark-border);border-radius:14px;padding:1.2rem 1.4rem; }
+.toc a { display:block;color:var(--gray);font-size:.88rem;padding:5px 0;border-bottom:1px solid var(--dark-border);text-decoration:none;transition:color .2s; }
+.toc a:hover { color:#22c55e; }
+.toc a:last-child { border:none; }
+
+.related-card { background:var(--dark-card);border:1px solid var(--dark-border);border-radius:14px;overflow:hidden;transition:border-color .2s;text-decoration:none;display:block; }
+.related-card:hover { border-color:#22c55e; }
+</style>
+}
+
+<article>
+<section class="article-hero">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Breadcrumb -->
+            <div style="font-size:.82rem;color:var(--gray);margin-bottom:1.2rem">
+                <a href="/nutrition" style="color:var(--gray)">تغذیه</a>
+                <span class="mx-2">›</span>
+                <a href="/nutrition?cat=@Uri.EscapeDataString(Model.Category)" style="color:var(--gray)">@Model.Category</a>
+                <span class="mx-2">›</span>
+                <span style="color:var(--white)">@Model.Title</span>
+            </div>
+
+            <!-- Meta -->
+            <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                <span style="background:rgba(34,197,94,.12);color:#22c55e;padding:4px 14px;border-radius:20px;font-size:.78rem;font-weight:700">@Model.Category</span>
+                <span style="color:var(--gray);font-size:.82rem"><i class="fas fa-clock me-1"></i>@Model.ReadMinutes دقیقه مطالعه</span>
+                <span style="color:var(--gray);font-size:.82rem"><i class="fas fa-eye me-1"></i>@Model.ViewCount بازدید</span>
+                <span style="color:var(--gray);font-size:.82rem"><i class="fas fa-user-md me-1"></i>@Model.AuthorName</span>
+            </div>
+
+            <h1 style="font-weight:900;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.4;margin-bottom:1rem">@Model.Title</h1>
+            <p style="color:var(--gray);font-size:1.05rem;line-height:1.8;margin-bottom:2rem;border-right:4px solid #22c55e;padding-right:1rem">@Model.Summary</p>
+        </div>
+    </div>
+</div>
+</section>
+
+<!-- Hero image -->
+@if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+{
+    <div style="width:100%;max-height:460px;overflow:hidden;margin-bottom:3rem">
+        <img src="@Model.ThumbnailUrl" alt="@Model.Title" style="width:100%;height:460px;object-fit:cover"/>
+    </div>
+}
+
+<section style="padding:0 0 60px">
+<div class="container">
+    <div class="row g-5 justify-content-center">
+
+        <!-- ── Article content ── -->
+        <div class="col-lg-8">
+            <div class="article-body">
+                @Html.Raw(Model.Content)
+            </div>
+
+            <!-- Tags -->
+            @if (!string.IsNullOrEmpty(Model.Tags))
+            {
+                <div class="mt-4 pt-4" style="border-top:1px solid var(--dark-border)">
+                    @foreach (var tag in Model.Tags.Split(','))
+                    {
+                        <span style="background:rgba(255,255,255,.05);border:1px solid var(--dark-border);padding:4px 12px;border-radius:20px;font-size:.78rem;color:var(--gray);display:inline-block;margin:3px">
+                            #@tag.Trim()
+                        </span>
+                    }
+                </div>
+            }
+
+            <!-- CTA -->
+            <div style="background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(255,45,120,.05));border:1px solid rgba(34,197,94,.2);border-radius:18px;padding:1.8rem;margin-top:2rem;text-align:center">
+                <div style="font-size:2rem;margin-bottom:.5rem">🎯</div>
+                <h5 style="font-weight:700;margin-bottom:.4rem">رژیم غذایی شخصی‌سازی‌شده برای تو</h5>
+                <p style="color:var(--gray);font-size:.9rem;margin-bottom:1rem">BMI و TDEE خودت رو محاسبه کن و رژیم اختصاصیت رو دریافت کن</p>
+                <a href="/bmi" class="btn-primary-tahila"><i class="fas fa-calculator me-2"></i>محاسبه رایگان BMI</a>
+            </div>
+        </div>
+
+        <!-- ── Sidebar ── -->
+        <div class="col-lg-4">
+            <div style="position:sticky;top:80px">
+
+                <!-- Author box -->
+                <div style="background:var(--dark-card);border:1px solid var(--dark-border);border-radius:14px;padding:1.2rem;margin-bottom:1.2rem;text-align:center">
+                    <div style="width:60px;height:60px;background:rgba(34,197,94,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;border:2px solid rgba(34,197,94,.3)">
+                        <i class="fas fa-user-md" style="font-size:1.4rem;color:#22c55e"></i>
+                    </div>
+                    <div style="font-weight:700">@Model.AuthorName</div>
+                    <div style="color:var(--gray);font-size:.78rem;margin-top:3px">متخصص تغذیه و رژیم درمانی</div>
+                </div>
+
+                <!-- Related articles -->
+                @if (related.Any())
+                {
+                    <div style="margin-bottom:1.2rem">
+                        <div style="font-weight:700;font-size:.9rem;margin-bottom:.8rem;color:var(--gray-light)">
+                            <i class="fas fa-link me-1" style="color:var(--primary)"></i>مقالات مرتبط
+                        </div>
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var r in related)
+                            {
+                                <a href="/nutrition/@r.Slug" class="related-card">
+                                    <div style="display:flex;gap:10px;padding:.8rem">
+                                        @if (!string.IsNullOrEmpty(r.ThumbnailUrl))
+                                        { <img src="@r.ThumbnailUrl" style="width:60px;height:45px;object-fit:cover;border-radius:8px;flex-shrink:0"/> }
+                                        <div>
+                                            <div style="font-size:.83rem;font-weight:700;color:var(--white);line-height:1.4">@r.Title</div>
+                                            <div style="font-size:.72rem;color:var(--gray);margin-top:3px"><i class="fas fa-clock me-1"></i>@r.ReadMinutes دقیقه</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Back button -->
+                <a href="/nutrition" class="btn-outline-tahila w-100 text-center" style="font-size:.85rem">
+                    <i class="fas fa-arrow-right me-2"></i>همه مقالات تغذیه
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+</section>
+</article>

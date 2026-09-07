@@ -1,0 +1,36 @@
+@model IEnumerable<Tahila.Domain.Entities.Coach>
+@{ Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; ViewData["PageTitle"] = "مربیان"; }
+
+<div class="d-flex justify-content-end mb-4">
+    <a href="/Admin/Coaches/Create" class="btn-primary-tahila"><i class="fas fa-plus me-2"></i>مربی جدید</a>
+</div>
+
+<div class="tahila-card" style="overflow:hidden">
+    <table class="table-tahila w-100">
+        <thead><tr><th>تصویر</th><th>نام</th><th>تخصص</th><th>ترتیب</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(c.ImagePath))
+                    { <img src="@c.ImagePath" style="width:45px;height:45px;border-radius:50%;object-fit:cover;border:2px solid var(--primary)"/> }
+                    else
+                    { <div style="width:45px;height:45px;border-radius:50%;background:rgba(255,45,120,.1);display:inline-flex;align-items:center;justify-content:center"><i class="fas fa-user" style="color:var(--primary)"></i></div> }
+                </td>
+                <td style="font-weight:600">@c.FullName</td>
+                <td style="color:var(--primary)">@c.Specialty</td>
+                <td>@c.Order</td>
+                <td>@if(c.IsActive){<span class="badge-active">فعال</span>}else{<span class="badge-inactive">غیرفعال</span>}</td>
+                <td>
+                    <a href="/Admin/Coaches/Edit/@c.Id" style="color:var(--primary);margin-left:12px"><i class="fas fa-edit"></i></a>
+                    <form method="post" action="/Admin/Coaches/Delete/@c.Id" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" style="background:none;border:none;color:#ef4444;cursor:pointer" onclick="return confirm('حذف شود؟')"><i class="fas fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

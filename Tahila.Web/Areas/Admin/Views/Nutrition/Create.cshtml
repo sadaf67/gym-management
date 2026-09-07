@@ -1,0 +1,99 @@
+@model Tahila.Domain.Entities.NutritionArticle
+@{ ViewData["PageTitle"] = "مقاله جدید"; }
+
+@section Styles {
+<style>
+.form-field { margin-bottom:1.4rem }
+.form-field label { display:block;font-weight:700;font-size:.88rem;margin-bottom:.5rem;color:var(--gray-light) }
+.form-field input,.form-field select,.form-field textarea {
+    width:100%;background:var(--dark-bg);border:1px solid var(--dark-border);border-radius:10px;
+    padding:10px 14px;color:var(--white);font-family:Vazirmatn,sans-serif;font-size:.9rem;
+    transition:border-color .2s
+}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus {
+    outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,45,120,.1)
+}
+.form-field textarea { resize:vertical;min-height:120px }
+.toggle-check { display:flex;align-items:center;gap:10px;cursor:pointer }
+.toggle-check input[type=checkbox] { width:20px;height:20px;accent-color:var(--primary) }
+</style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="/Admin/Nutrition" style="color:var(--gray);font-size:.9rem"><i class="fas fa-arrow-right me-2"></i>بازگشت</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="tahila-card p-4">
+                <div class="form-field">
+                    <label>عنوان مقاله *</label>
+                    <input name="Title" value="@Model.Title" required placeholder="عنوان مقاله را وارد کنید"/>
+                </div>
+                <div class="form-field">
+                    <label>خلاصه (Summary)</label>
+                    <textarea name="Summary" rows="3" placeholder="توضیح کوتاه برای لیست مقالات">@Model.Summary</textarea>
+                </div>
+                <div class="form-field">
+                    <label>محتوای کامل (HTML پشتیبانی می‌شود) *</label>
+                    <textarea name="Content" rows="20" placeholder="محتوای کامل مقاله را اینجا وارد کنید...">@Model.Content</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="tahila-card p-4 mb-4">
+                <h6 style="font-weight:700;margin-bottom:1.2rem;color:var(--gray-light)"><i class="fas fa-cog me-2" style="color:var(--primary)"></i>تنظیمات</h6>
+
+                <div class="form-field">
+                    <label>دسته‌بندی *</label>
+                    <input name="Category" value="@Model.Category" required placeholder="مثلاً: کاهش وزن"/>
+                </div>
+                <div class="form-field">
+                    <label>نویسنده</label>
+                    <input name="AuthorName" value="@(string.IsNullOrEmpty(Model.AuthorName) ? "دکتر تغذیه تهیلا" : Model.AuthorName)"/>
+                </div>
+                <div class="form-field">
+                    <label>زمان مطالعه (دقیقه)</label>
+                    <input type="number" name="ReadMinutes" value="@(Model.ReadMinutes == 0 ? 5 : Model.ReadMinutes)" min="1" max="60"/>
+                </div>
+                <input type="hidden" name="Slug" value="@Model.Slug"/>
+                <div class="form-field">
+                    <label>برچسب‌ها (با کاما جدا کنید)</label>
+                    <input name="Tags" value="@Model.Tags" placeholder="پروتئین,عضله,تغذیه"/>
+                </div>
+                <div class="form-field">
+                    <label>ترتیب نمایش</label>
+                    <input type="number" name="Order" value="@Model.Order" min="0"/>
+                </div>
+                <div class="d-flex flex-column gap-3 mb-3">
+                    <label class="toggle-check">
+                        <input type="checkbox" name="IsPublished" value="true" @(Model.IsPublished ? "checked" : "")/>
+                        <span>منتشر شده</span>
+                    </label>
+                    <label class="toggle-check">
+                        <input type="checkbox" name="IsFeatured" value="true" @(Model.IsFeatured ? "checked" : "")/>
+                        <span>⭐ مقاله ویژه</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="tahila-card p-4 mb-4">
+                <h6 style="font-weight:700;margin-bottom:1rem;color:var(--gray-light)"><i class="fas fa-image me-2" style="color:#3b82f6"></i>تصویر شاخص</h6>
+                @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+                {
+                    <img src="@Model.ThumbnailUrl" style="width:100%;border-radius:10px;margin-bottom:10px;max-height:120px;object-fit:cover"/>
+                }
+                <input type="file" name="thumbnailFile" accept="image/*" style="font-size:.85rem"/>
+                <div style="margin-top:.6rem">
+                    <label style="font-size:.82rem;color:var(--gray)">یا URL تصویر:</label>
+                    <input name="ThumbnailUrl" value="@Model.ThumbnailUrl" placeholder="https://...jpg" style="margin-top:4px"/>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary-tahila w-100"><i class="fas fa-save me-2"></i>ذخیره مقاله</button>
+        </div>
+    </div>
+</form>

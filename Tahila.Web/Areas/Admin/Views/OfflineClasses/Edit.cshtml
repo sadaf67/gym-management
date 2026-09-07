@@ -1,0 +1,68 @@
+@model Tahila.Domain.Entities.OfflineClass
+@{ ViewData["PageTitle"] = "ویرایش دوره"; }
+
+@section Styles {
+<style>
+.form-field{margin-bottom:1.4rem}.form-field label{display:block;font-weight:700;font-size:.88rem;margin-bottom:.5rem;color:var(--gray-light)}
+.form-field input,.form-field select,.form-field textarea{width:100%;background:var(--dark-bg);border:1px solid var(--dark-border);border-radius:10px;padding:10px 14px;color:var(--white);font-family:Vazirmatn,sans-serif;font-size:.9rem}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:none;border-color:var(--primary)}
+.form-field select option{background:var(--dark-card)}
+.toggle-check{display:flex;align-items:center;gap:10px;cursor:pointer}
+.toggle-check input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary)}
+</style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="/Admin/OfflineClasses" style="color:var(--gray);font-size:.9rem"><i class="fas fa-arrow-right me-2"></i>بازگشت</a>
+    <a href="/Admin/OfflineClasses/Sessions/@Model.Id" class="btn-sm-outline"><i class="fas fa-list me-1"></i>مدیریت جلسات (@Model.Sessions.Count)</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Id" value="@Model.Id"/>
+    <input type="hidden" name="CreatedAt" value="@Model.CreatedAt.ToString("o")"/>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="tahila-card p-4">
+                <div class="form-field"><label>عنوان دوره *</label><input name="Title" value="@Model.Title" required/></div>
+                <div class="form-field"><label>توضیحات</label><textarea name="Description" rows="5">@Model.Description</textarea></div>
+                <div class="row g-3">
+                    <div class="col-md-6"><div class="form-field"><label>دسته‌بندی</label><input name="Category" value="@Model.Category"/></div></div>
+                    <div class="col-md-6">
+                        <div class="form-field"><label>سطح</label>
+                            <select name="Level">
+                            @foreach (var lvl in new[]{"مبتدی","متوسط","پیشرفته","همه سطوح"})
+                            {
+                                if (lvl == Model.Level) { <option value="@lvl" selected="selected">@lvl</option> }
+                                else { <option value="@lvl">@lvl</option> }
+                            }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6"><div class="form-field"><label>نام مربی</label><input name="CoachName" value="@Model.CoachName"/></div></div>
+                    <div class="col-md-6"><div class="form-field"><label>ترتیب</label><input type="number" name="Order" value="@Model.Order" min="0"/></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="tahila-card p-4 mb-4">
+                <h6 style="font-weight:700;margin-bottom:1rem;color:var(--gray-light)">تصویر دوره</h6>
+                @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+                { <img src="@Model.ThumbnailUrl" style="width:100%;border-radius:10px;margin-bottom:8px;max-height:120px;object-fit:cover"/> }
+                <input type="file" name="thumbnailFile" accept="image/*" style="font-size:.85rem;margin-bottom:8px"/>
+                <input name="ThumbnailUrl" value="@Model.ThumbnailUrl" placeholder="یا URL"/>
+            </div>
+            <div class="tahila-card p-4 mb-4">
+                <h6 style="font-weight:700;margin-bottom:1rem;color:var(--gray-light)">وضعیت</h6>
+                <label class="toggle-check">
+                    <input type="checkbox" name="IsActive" value="true" @(Model.IsActive ? "checked" : "")/>
+                    <span>دوره فعال است</span>
+                </label>
+            </div>
+            <button type="submit" class="btn-primary-tahila w-100"><i class="fas fa-save me-2"></i>ذخیره تغییرات</button>
+        </div>
+    </div>
+</form>

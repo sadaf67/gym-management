@@ -1,0 +1,113 @@
+@model Tahila.Domain.Entities.WorkoutArticle
+@{
+    var related = ViewBag.Related as IEnumerable<Tahila.Domain.Entities.WorkoutArticle> ?? [];
+}
+
+@section Styles {
+<style>
+.article-hero { padding:60px 0 0; background:linear-gradient(180deg,rgba(99,102,241,.06) 0%,transparent 100%); }
+.article-body { font-size:1rem;line-height:2;color:var(--gray-light); }
+.article-body h2 { font-size:1.4rem;font-weight:900;color:var(--white);margin:2rem 0 .8rem;padding-bottom:.5rem;border-bottom:2px solid rgba(99,102,241,.3); }
+.article-body h3 { font-size:1.1rem;font-weight:700;color:var(--white);margin:1.5rem 0 .6rem; }
+.article-body p { margin-bottom:1.1rem; }
+.article-body ul,.article-body ol { margin:.5rem 0 1rem 1.5rem; }
+.article-body li { margin-bottom:.4rem;line-height:1.8; }
+.article-body strong { color:var(--white);font-weight:700; }
+.article-body .highlight-box { background:rgba(99,102,241,.06);border-right:4px solid #6366f1;padding:1rem 1.2rem;border-radius:0 10px 10px 0;margin:1.2rem 0; }
+.article-body .warning-box { background:rgba(239,68,68,.06);border-right:4px solid #ef4444;padding:1rem 1.2rem;border-radius:0 10px 10px 0;margin:1.2rem 0; }
+.article-body table { width:100%;border-collapse:collapse;margin:1rem 0; }
+.article-body th { background:rgba(255,255,255,.06);padding:10px 14px;text-align:right;font-weight:700;border:1px solid var(--dark-border); }
+.article-body td { padding:9px 14px;border:1px solid var(--dark-border);color:var(--gray-light);font-size:.9rem; }
+.related-card { background:var(--dark-card);border:1px solid var(--dark-border);border-radius:14px;overflow:hidden;transition:border-color .2s;text-decoration:none;display:block; }
+.related-card:hover { border-color:#6366f1; }
+</style>
+}
+
+<article>
+<section class="article-hero">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div style="font-size:.82rem;color:var(--gray);margin-bottom:1.2rem">
+                <a href="/workout" style="color:var(--gray)">تمرین</a>
+                <span class="mx-2">›</span>
+                <a href="/workout?cat=@Uri.EscapeDataString(Model.Category)" style="color:var(--gray)">@Model.Category</a>
+                <span class="mx-2">›</span>
+                <span style="color:var(--white)">@Model.Title</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                <span style="background:rgba(99,102,241,.12);color:#6366f1;padding:4px 14px;border-radius:20px;font-size:.78rem;font-weight:700">@Model.Category</span>
+                <span style="color:var(--gray);font-size:.82rem"><i class="fas fa-clock me-1"></i>@Model.ReadMinutes دقیقه مطالعه</span>
+                <span style="color:var(--gray);font-size:.82rem"><i class="fas fa-eye me-1"></i>@Model.ViewCount بازدید</span>
+                <span style="color:var(--gray);font-size:.82rem"><i class="fas fa-user-tie me-1"></i>@Model.AuthorName</span>
+            </div>
+            <h1 style="font-weight:900;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.4;margin-bottom:1rem">@Model.Title</h1>
+            <p style="color:var(--gray);font-size:1.05rem;line-height:1.8;margin-bottom:2rem;border-right:4px solid #6366f1;padding-right:1rem">@Model.Summary</p>
+        </div>
+    </div>
+</div>
+</section>
+
+@if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+{
+    <div style="width:100%;max-height:460px;overflow:hidden;margin-bottom:3rem">
+        <img src="@Model.ThumbnailUrl" alt="@Model.Title" style="width:100%;height:460px;object-fit:cover"/>
+    </div>
+}
+
+<section style="padding:0 0 60px">
+<div class="container">
+    <div class="row g-5 justify-content-center">
+        <div class="col-lg-8">
+            <div class="article-body">@Html.Raw(Model.Content)</div>
+            @if (!string.IsNullOrEmpty(Model.Tags))
+            {
+                <div class="mt-4 pt-4" style="border-top:1px solid var(--dark-border)">
+                    @foreach (var tag in Model.Tags.Split(','))
+                    { <span style="background:rgba(255,255,255,.05);border:1px solid var(--dark-border);padding:4px 12px;border-radius:20px;font-size:.78rem;color:var(--gray);display:inline-block;margin:3px">#@tag.Trim()</span> }
+                </div>
+            }
+            <div style="background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(255,45,120,.05));border:1px solid rgba(99,102,241,.2);border-radius:18px;padding:1.8rem;margin-top:2rem;text-align:center">
+                <div style="font-size:2rem;margin-bottom:.5rem">💪</div>
+                <h5 style="font-weight:700;margin-bottom:.4rem">شروع تمرین حرفه‌ای</h5>
+                <p style="color:var(--gray);font-size:.9rem;margin-bottom:1rem">کلاس‌های آفلاین ما رو ببین — جلسه اول رایگان</p>
+                <a href="/offline-classes" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:10px 24px;border-radius:30px;text-decoration:none;font-weight:700"><i class="fas fa-play-circle me-2"></i>کلاس‌های آفلاین</a>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div style="position:sticky;top:80px">
+                <div style="background:var(--dark-card);border:1px solid var(--dark-border);border-radius:14px;padding:1.2rem;margin-bottom:1.2rem;text-align:center">
+                    <div style="width:60px;height:60px;background:rgba(99,102,241,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;border:2px solid rgba(99,102,241,.3)">
+                        <i class="fas fa-user-tie" style="font-size:1.4rem;color:#6366f1"></i>
+                    </div>
+                    <div style="font-weight:700">@Model.AuthorName</div>
+                    <div style="color:var(--gray);font-size:.78rem;margin-top:3px">مربی و متخصص تمرین تهیلا</div>
+                </div>
+                @if (related.Any())
+                {
+                    <div style="margin-bottom:1.2rem">
+                        <div style="font-weight:700;font-size:.9rem;margin-bottom:.8rem;color:var(--gray-light)"><i class="fas fa-link me-1" style="color:#6366f1"></i>مقالات مرتبط</div>
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var r in related)
+                            {
+                                <a href="/workout/@r.Slug" class="related-card">
+                                    <div style="display:flex;gap:10px;padding:.8rem">
+                                        @if (!string.IsNullOrEmpty(r.ThumbnailUrl))
+                                        { <img src="@r.ThumbnailUrl" style="width:60px;height:45px;object-fit:cover;border-radius:8px;flex-shrink:0"/> }
+                                        <div>
+                                            <div style="font-size:.83rem;font-weight:700;color:var(--white);line-height:1.4">@r.Title</div>
+                                            <div style="font-size:.72rem;color:var(--gray);margin-top:3px"><i class="fas fa-clock me-1"></i>@r.ReadMinutes دقیقه</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+                <a href="/workout" class="btn-outline-tahila w-100 text-center" style="font-size:.85rem"><i class="fas fa-arrow-right me-2"></i>همه مقالات تمرین</a>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+</article>

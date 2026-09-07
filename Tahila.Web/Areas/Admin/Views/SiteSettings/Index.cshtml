@@ -1,0 +1,156 @@
+@model Tahila.Domain.Entities.SiteSetting
+@{ Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; }
+
+<form method="post" enctype="multipart/form-data" class="form-tahila">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <!-- General -->
+        <div class="col-12">
+            <div class="tahila-card p-4">
+                <h6 style="font-weight:700;margin-bottom:1.5rem;color:var(--primary)">
+                    <i class="fas fa-globe me-2"></i>اطلاعات اصلی
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label>نام سایت</label>
+                        <input class="form-control" asp-for="SiteName"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label>ایمیل</label>
+                        <input class="form-control" asp-for="Email"/>
+                    </div>
+                    <div class="col-12">
+                        <label>توضیحات سایت</label>
+                        <textarea class="form-control" asp-for="SiteDescription" rows="2"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label>کلمات کلیدی (SEO)</label>
+                        <input class="form-control" asp-for="SiteKeywords"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label>رنگ اصلی</label>
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="color" class="form-control" asp-for="PrimaryColor" style="width:60px;height:42px;padding:2px"/>
+                            <input class="form-control" asp-for="PrimaryColor" placeholder="#FF2D78"/>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label>لوگو فعلی</label>
+                        @if (!string.IsNullOrEmpty(Model.Logo))
+                        { <img src="@Model.Logo" style="height:40px;display:block;margin-bottom:8px"/> }
+                        <input type="file" class="form-control" name="logoFile" accept="image/*"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="col-12">
+            <div class="tahila-card p-4">
+                <h6 style="font-weight:700;margin-bottom:1.5rem;color:var(--primary)">
+                    <i class="fas fa-image me-2"></i>بخش هرو (Hero)
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label>عنوان اصلی</label>
+                        <input class="form-control" asp-for="HeroTitle"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label>زیرعنوان</label>
+                        <input class="form-control" asp-for="HeroSubTitle"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label>تصویر هرو</label>
+                        @if (!string.IsNullOrEmpty(Model.HeroImage))
+                        { <img src="@Model.HeroImage" style="height:60px;display:block;border-radius:8px;margin-bottom:8px"/> }
+                        <input type="file" class="form-control" name="heroImageFile" accept="image/*"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label>لینک ویدیو (اختیاری)</label>
+                        <input class="form-control" asp-for="HeroVideoUrl"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About -->
+        <div class="col-12">
+            <div class="tahila-card p-4">
+                <h6 style="font-weight:700;margin-bottom:1.5rem;color:var(--primary)">
+                    <i class="fas fa-info-circle me-2"></i>درباره ما
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label>عنوان</label>
+                        <input class="form-control" asp-for="AboutTitle"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label>تصویر</label>
+                        @if (!string.IsNullOrEmpty(Model.AboutImage))
+                        { <img src="@Model.AboutImage" style="height:40px;display:block;border-radius:8px;margin-bottom:8px"/> }
+                        <input type="file" class="form-control" name="aboutImageFile" accept="image/*"/>
+                    </div>
+                    <div class="col-12">
+                        <label>متن</label>
+                        <textarea class="form-control" asp-for="AboutText" rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="col-12">
+            <div class="tahila-card p-4">
+                <h6 style="font-weight:700;margin-bottom:1.5rem;color:var(--primary)">
+                    <i class="fas fa-phone me-2"></i>اطلاعات تماس
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-6"><label>تلفن</label><input class="form-control" asp-for="Phone"/></div>
+                    <div class="col-md-6"><label>تلفن دوم</label><input class="form-control" asp-for="Phone2"/></div>
+                    <div class="col-12"><label>آدرس</label><input class="form-control" asp-for="Address"/></div>
+                    <div class="col-md-6"><label>ساعات کاری</label><input class="form-control" asp-for="WorkingHours"/></div>
+                    <div class="col-12"><label>کد نقشه (iframe embed)</label><textarea class="form-control" asp-for="MapEmbed" rows="3"></textarea></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social & Stats -->
+        <div class="col-lg-6">
+            <div class="tahila-card p-4">
+                <h6 style="font-weight:700;margin-bottom:1.5rem;color:var(--primary)"><i class="fas fa-share-alt me-2"></i>شبکه‌های اجتماعی</h6>
+                <div class="row g-3">
+                    <div class="col-12"><label>اینستاگرام</label><input class="form-control" asp-for="Instagram" placeholder="https://instagram.com/..."/></div>
+                    <div class="col-12"><label>تلگرام</label><input class="form-control" asp-for="Telegram"/></div>
+                    <div class="col-12"><label>واتساپ</label><input class="form-control" asp-for="WhatsApp"/></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="tahila-card p-4">
+                <h6 style="font-weight:700;margin-bottom:1.5rem;color:var(--primary)"><i class="fas fa-chart-bar me-2"></i>آمار نمایشی</h6>
+                <div class="row g-3">
+                    <div class="col-6"><label>تعداد اعضا</label><input class="form-control" type="number" asp-for="MembersCount"/></div>
+                    <div class="col-6"><label>تعداد مربیان</label><input class="form-control" type="number" asp-for="CoachesCount"/></div>
+                    <div class="col-6"><label>تعداد کلاس‌ها</label><input class="form-control" type="number" asp-for="ClassesCount"/></div>
+                    <div class="col-6"><label>سال‌های فعالیت</label><input class="form-control" type="number" asp-for="YearsCount"/></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="col-12">
+            <div class="tahila-card p-4">
+                <label>متن فوتر</label>
+                <input class="form-control" asp-for="FooterText"/>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <button type="submit" class="btn-primary-tahila">
+                <i class="fas fa-save me-2"></i>ذخیره تنظیمات
+            </button>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,30 @@
+@model IEnumerable<Tahila.Domain.Entities.Plan>
+@{ Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; ViewData["PageTitle"] = "پلن‌های عضویت"; }
+
+<div class="d-flex justify-content-end mb-4">
+    <a href="/Admin/Plans/Create" class="btn-primary-tahila"><i class="fas fa-plus me-2"></i>پلن جدید</a>
+</div>
+<div class="tahila-card" style="overflow:hidden">
+    <table class="table-tahila w-100">
+        <thead><tr><th>نام</th><th>قیمت (تومان)</th><th>مدت (روز)</th><th>محبوب</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td style="font-weight:600">@p.Name</td>
+                <td style="color:var(--primary);font-weight:700">@p.Price.ToString("N0")</td>
+                <td>@p.DurationDays</td>
+                <td>@if(p.IsPopular){<i class="fas fa-star" style="color:#f59e0b"></i>}</td>
+                <td>@if(p.IsActive){<span class="badge-active">فعال</span>}else{<span class="badge-inactive">غیرفعال</span>}</td>
+                <td>
+                    <a href="/Admin/Plans/Edit/@p.Id" style="color:var(--primary);margin-left:12px"><i class="fas fa-edit"></i></a>
+                    <form method="post" action="/Admin/Plans/Delete/@p.Id" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" style="background:none;border:none;color:#ef4444;cursor:pointer" onclick="return confirm('حذف شود؟')"><i class="fas fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

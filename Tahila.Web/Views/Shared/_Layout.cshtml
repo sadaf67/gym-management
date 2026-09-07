@@ -1,0 +1,446 @@
+@using Tahila.Application.Services.Interfaces
+@inject ISiteSettingService SiteSettingService
+@{
+    var settings = await SiteSettingService.GetSettingsAsync();
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="@(settings.SiteDescription ?? settings.SiteName)"/>
+    <meta name="theme-color" content="#0D0D0D"/>
+    <!-- Open Graph -->
+    <meta property="og:title" content="@ViewData["Title"] | @settings.SiteName"/>
+    <meta property="og:description" content="@(settings.SiteDescription ?? settings.SiteName)"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:locale" content="fa_IR"/>
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json"/>
+    <link rel="apple-touch-icon" href="/img/logo.svg"/>
+    <title>@ViewData["Title"] | @settings.SiteName</title>
+    <link rel="preload" href="/img/logo-loader.svg" as="image"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="~/css/tahila.css" asp-append-version="true"/>
+    @if (!string.IsNullOrEmpty(settings.PrimaryColor) && settings.PrimaryColor != "#FF2D78")
+    {
+        <style>:root { --primary: @settings.PrimaryColor; --primary-dark: @settings.PrimaryColor; }</style>
+    }
+
+    <style>
+    /* ══════════════════════════════════════════
+       PAGE LOADER
+    ══════════════════════════════════════════ */
+    #tahila-loader {
+        position: fixed; inset: 0; z-index: 99999;
+        background: #0D0D0D;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 0;
+        transition: opacity .55s ease, visibility .55s ease;
+    }
+    #tahila-loader.hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    /* logo image */
+    .loader-logo {
+        width: 260px;
+        animation: loaderPop .7s cubic-bezier(.34,1.56,.64,1) both;
+    }
+
+    /* progress bar */
+    .loader-bar-wrap {
+        width: 200px;
+        height: 3px;
+        background: #1e1e1e;
+        border-radius: 3px;
+        margin-top: 28px;
+        overflow: hidden;
+    }
+    .loader-bar {
+        height: 100%;
+        width: 0%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #FF2D78, #FF6BAE);
+        animation: loaderFill 1.6s cubic-bezier(.4,0,.2,1) forwards;
+    }
+
+    /* pulse ring */
+    .loader-ring {
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,45,120,.15);
+        position: absolute;
+        animation: loaderRing 1.8s ease-out infinite;
+    }
+    .loader-ring:nth-child(2) { animation-delay: .6s; }
+    .loader-ring:nth-child(3) { animation-delay: 1.2s; }
+
+    .loader-rings {
+        position: absolute;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    @@keyframes loaderPop {
+        0%   { opacity:0; transform: scale(.7) translateY(20px); }
+        100% { opacity:1; transform: scale(1)  translateY(0);    }
+    }
+    @@keyframes loaderFill {
+        0%   { width: 0%; }
+        60%  { width: 75%; }
+        100% { width: 100%; }
+    }
+    @@keyframes loaderRing {
+        0%   { transform: scale(.6); opacity: .6; }
+        100% { transform: scale(2);  opacity: 0;  }
+    }
+
+    /* body locked while loading */
+    body.loading { overflow: hidden; }
+
+    /* ══════════════════════════════════════════
+       DARK / LIGHT MODE
+    ══════════════════════════════════════════ */
+    body.light-mode {
+        --dark-bg: #f4f6f9; --dark-card: #ffffff; --dark-border: #e2e8f0;
+        --white: #0f172a; --gray-light: #374151; --gray: #6b7280;
+        background: var(--dark-bg); color: var(--white);
+    }
+    body.light-mode .navbar-tahila { background: rgba(255,255,255,.95); border-bottom-color: #e2e8f0; }
+    body.light-mode .footer-tahila { background: #1e293b; }
+
+    #theme-toggle {
+        background: none; border: 1px solid var(--dark-border); color: var(--gray);
+        border-radius: 50%; width: 36px; height: 36px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all .2s; font-size: .85rem;
+    }
+    #theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ══════════════════════════════════════════
+       CHATBOT
+    ══════════════════════════════════════════ */
+    #chatbot-btn {
+        position: fixed; bottom: 28px; left: 28px; z-index: 9000;
+        width: 56px; height: 56px; border-radius: 50%;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        border: none; cursor: pointer; box-shadow: 0 8px 24px rgba(34,197,94,.35);
+        display: flex; align-items: center; justify-content: center;
+        transition: transform .2s, box-shadow .2s;
+        animation: chatPulse 3s ease-in-out infinite;
+    }
+    #chatbot-btn:hover { transform: scale(1.1); box-shadow: 0 12px 32px rgba(34,197,94,.5); }
+    #chatbot-btn i { color: #fff; font-size: 1.3rem; }
+
+    #chatbot-window {
+        position: fixed; bottom: 96px; left: 28px; z-index: 9000;
+        width: 340px; max-height: 480px; border-radius: 20px;
+        background: var(--dark-card); border: 1px solid var(--dark-border);
+        box-shadow: 0 20px 60px rgba(0,0,0,.4);
+        display: none; flex-direction: column; overflow: hidden;
+    }
+    #chatbot-window.open { display: flex; animation: chatSlideUp .3s ease both; }
+    .chat-header { background: linear-gradient(135deg,#22c55e,#16a34a); padding: 14px 16px; }
+    .chat-header h6 { color: #fff; margin: 0; font-weight: 700; font-size: .95rem; }
+    .chat-header p { color: rgba(255,255,255,.7); margin: 0; font-size: .75rem; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: .85rem; line-height: 1.5; }
+    .chat-msg.bot { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2); color: var(--gray-light); align-self: flex-start; border-radius: 12px 12px 12px 2px; }
+    .chat-msg.user { background: var(--primary); color: #fff; align-self: flex-end; border-radius: 12px 12px 2px 12px; }
+    .chat-input-row { padding: 12px; border-top: 1px solid var(--dark-border); display: flex; gap: 8px; }
+    .chat-input-row input { flex: 1; background: var(--dark-bg); border: 1px solid var(--dark-border); border-radius: 20px; padding: 8px 14px; color: var(--white); font-family: Vazirmatn,sans-serif; font-size: .85rem; }
+    .chat-input-row input:focus { outline: none; border-color: #22c55e; }
+    .chat-input-row button { background: #22c55e; border: none; border-radius: 50%; width: 36px; height: 36px; color: #fff; cursor: pointer; flex-shrink: 0; }
+    .chat-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+    .chat-quick button { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2); color: #22c55e; border-radius: 16px; padding: 4px 10px; font-size: .75rem; cursor: pointer; font-family: Vazirmatn,sans-serif; transition: all .2s; }
+    .chat-quick button:hover { background: rgba(34,197,94,.2); }
+
+    @@keyframes chatPulse {
+        0%,100% { box-shadow: 0 8px 24px rgba(34,197,94,.35); }
+        50% { box-shadow: 0 8px 32px rgba(34,197,94,.6); }
+    }
+    @@keyframes chatSlideUp {
+        from { opacity:0; transform: translateY(20px); }
+        to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ══════════════════════════════════════════
+       COUNTER ANIMATION
+    ══════════════════════════════════════════ */
+    [data-counter] { display: inline-block; }
+
+    /* ══════════════════════════════════════════
+       NAVBAR LOGO
+    ══════════════════════════════════════════ */
+    .navbar-logo-img {
+        height: 42px;
+        width: auto;
+        display: block;
+        transition: transform .3s;
+    }
+    .navbar-logo-img:hover { transform: scale(1.05); }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="loading">
+
+<!-- ══ PAGE LOADER ══ -->
+<div id="tahila-loader" role="status" aria-label="در حال بارگذاری">
+    <div class="loader-rings">
+        <div class="loader-ring"></div>
+        <div class="loader-ring"></div>
+        <div class="loader-ring"></div>
+    </div>
+    <img src="/img/logo-loader.svg" alt="تهیلا" class="loader-logo"/>
+    <div class="loader-bar-wrap">
+        <div class="loader-bar"></div>
+    </div>
+</div>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar-tahila">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="/" class="logo" style="line-height:1">
+                <img src="/img/logo.svg" alt="@settings.SiteName" class="navbar-logo-img"/>
+            </a>
+            <button class="d-lg-none" id="mobileMenuBtn" style="background:none;border:1px solid #333;padding:8px 12px;border-radius:8px;color:#fff;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav d-none d-lg-flex align-items-center">
+                <li><a class="nav-link" href="/">خانه</a></li>
+                <li><a class="nav-link" href="/classes">کلاس‌ها</a></li>
+                <li><a class="nav-link" href="/schedule">برنامه هفتگی</a></li>
+                <li><a class="nav-link" href="/coaches">مربیان</a></li>
+                <li><a class="nav-link" href="/plans">پلن‌ها</a></li>
+                <li><a class="nav-link" href="/gallery">گالری</a></li>
+                <li><a class="nav-link" href="/offline-classes"><i class="fas fa-play-circle me-1"></i>کلاس آفلاین</a></li>
+                <li><a class="nav-link" href="/nutrition"><i class="fas fa-leaf me-1"></i>تغذیه</a></li>
+                <li><a class="nav-link" href="/workout"><i class="fas fa-dumbbell me-1"></i>تمرین</a></li>
+                <li><a class="nav-link" href="/transformations"><i class="fas fa-trophy me-1"></i>موفقیت‌ها</a></li>
+                <li><a class="nav-link" href="/bmi" style="color:var(--primary)!important;font-weight:700"><i class="fas fa-calculator me-1"></i>BMI</a></li>
+                <li><a class="nav-link" href="/contact">تماس</a></li>
+                <li>
+                    <button id="theme-toggle" title="تغییر تم" aria-label="تغییر تم روشن/تاریک">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                </li>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <li><a class="nav-link btn-navbar ms-2" href="/member">پنل کاربری</a></li>
+                }
+                else
+                {
+                    <li><a class="nav-link btn-navbar ms-2" href="/account/login">ورود / ثبت‌نام</a></li>
+                }
+            </ul>
+        </div>
+        <div id="mobileNav" style="display:none">
+            <ul class="nav flex-column py-3">
+                <li><a class="nav-link" href="/">خانه</a></li>
+                <li><a class="nav-link" href="/classes">کلاس‌ها</a></li>
+                <li><a class="nav-link" href="/schedule">برنامه هفتگی</a></li>
+                <li><a class="nav-link" href="/coaches">مربیان</a></li>
+                <li><a class="nav-link" href="/plans">پلن‌ها</a></li>
+                <li><a class="nav-link" href="/gallery">گالری</a></li>
+                <li><a class="nav-link" href="/offline-classes"><i class="fas fa-play-circle me-1"></i>کلاس آفلاین</a></li>
+                <li><a class="nav-link" href="/nutrition"><i class="fas fa-leaf me-1"></i>تغذیه</a></li>
+                <li><a class="nav-link" href="/workout"><i class="fas fa-dumbbell me-1"></i>تمرین</a></li>
+                <li><a class="nav-link" href="/transformations"><i class="fas fa-trophy me-1"></i>موفقیت‌ها</a></li>
+                <li><a class="nav-link" href="/bmi" style="color:var(--primary)!important;font-weight:700"><i class="fas fa-calculator me-1"></i>BMI</a></li>
+                <li><a class="nav-link" href="/contact">تماس</a></li>
+                @if (User.Identity?.IsAuthenticated == true)
+                { <li><a class="nav-link" href="/member">پنل کاربری</a></li> }
+                else
+                { <li><a class="nav-link" href="/account/login">ورود / ثبت‌نام</a></li> }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@RenderBody()
+
+<footer class="footer-tahila">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="mb-3">
+                    <img src="/img/logo.svg" alt="@settings.SiteName" style="height:48px;width:auto"/>
+                </div>
+                <p style="color:var(--gray);font-size:.9rem">@settings.SiteDescription</p>
+                <div class="footer-social mt-3">
+                    @if (!string.IsNullOrEmpty(settings.Instagram))
+                    { <a href="@settings.Instagram" target="_blank"><i class="fab fa-instagram"></i></a> }
+                    @if (!string.IsNullOrEmpty(settings.Telegram))
+                    { <a href="@settings.Telegram" target="_blank"><i class="fab fa-telegram"></i></a> }
+                    @if (!string.IsNullOrEmpty(settings.WhatsApp))
+                    { <a href="@settings.WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a> }
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <h6 style="color:var(--white);font-weight:700;margin-bottom:1rem">لینک‌های سریع</h6>
+                <a class="footer-link" href="/classes">کلاس‌ها</a>
+                <a class="footer-link" href="/coaches">مربیان</a>
+                <a class="footer-link" href="/plans">پلن‌های عضویت</a>
+                <a class="footer-link" href="/gallery">گالری</a>
+                <a class="footer-link" href="/contact">تماس با ما</a>
+            </div>
+            <div class="col-lg-6">
+                <h6 style="color:var(--white);font-weight:700;margin-bottom:1rem">اطلاعات تماس</h6>
+                @if (!string.IsNullOrEmpty(settings.Phone))
+                { <p style="color:var(--gray);font-size:.9rem"><i class="fas fa-phone me-2" style="color:var(--primary)"></i>@settings.Phone</p> }
+                @if (!string.IsNullOrEmpty(settings.Address))
+                { <p style="color:var(--gray);font-size:.9rem"><i class="fas fa-location-dot me-2" style="color:var(--primary)"></i>@settings.Address</p> }
+                @if (!string.IsNullOrEmpty(settings.WorkingHours))
+                { <p style="color:var(--gray);font-size:.9rem"><i class="fas fa-clock me-2" style="color:var(--primary)"></i>@settings.WorkingHours</p> }
+            </div>
+        </div>
+        <div class="footer-bottom"><p>@settings.FooterText</p></div>
+    </div>
+</footer>
+
+<!-- ══ CHATBOT ══ -->
+<button id="chatbot-btn" aria-label="دستیار هوشمند تغذیه" title="دستیار تغذیه تهیلا">
+    <i class="fas fa-robot"></i>
+</button>
+<div id="chatbot-window" role="dialog" aria-label="چت با دستیار تهیلا">
+    <div class="chat-header">
+        <h6><i class="fas fa-robot me-2"></i>دستیار تغذیه تهیلا</h6>
+        <p>سوالت رو بپرس — آنلاین هستم 🌿</p>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg bot">سلام! 👋 من دستیار تغذیه تهیلا هستم.<br/>می‌تونم در مورد رژیم، تمرین و BMI کمکت کنم. چه سوالی داری؟</div>
+    </div>
+    <div class="chat-quick" id="quickBtns">
+        <button onclick="sendQuick('چطور وزن کم کنم؟')">کاهش وزن</button>
+        <button onclick="sendQuick('برنامه تمرینی بده')">تمرین</button>
+        <button onclick="sendQuick('رژیم پروتئین بالا')">پروتئین</button>
+        <button onclick="sendQuick('BMI سالم چقدره؟')">BMI</button>
+    </div>
+    <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="سوال بپرس..." autocomplete="off"/>
+        <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="~/js/tahila.js" asp-append-version="true"></script>
+
+<script>
+// ── Page Loader ──────────────────────────────────────────────
+(function () {
+    const loader = document.getElementById('tahila-loader');
+    function hideLoader() { loader.classList.add('hide'); document.body.classList.remove('loading'); }
+    if (document.readyState === 'complete') setTimeout(hideLoader, 1700);
+    else window.addEventListener('load', () => setTimeout(hideLoader, 1700));
+    setTimeout(hideLoader, 3000);
+}());
+
+// ── Dark / Light Mode ────────────────────────────────────────
+(function () {
+    const btn = document.getElementById('theme-toggle');
+    const icon = document.getElementById('theme-icon');
+    const saved = localStorage.getItem('tahila-theme') || 'dark';
+    if (saved === 'light') { document.body.classList.add('light-mode'); if(icon) icon.className = 'fas fa-sun'; }
+    btn?.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-mode');
+        if(icon) icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+        localStorage.setItem('tahila-theme', isLight ? 'light' : 'dark');
+    });
+}());
+
+// ── Counter Animation ────────────────────────────────────────
+(function () {
+    const counters = document.querySelectorAll('[data-counter]');
+    if (!counters.length) return;
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (!e.isIntersecting) return;
+            const el = e.target;
+            const target = parseFloat(el.dataset.counter);
+            const isFloat = el.dataset.counter.includes('.');
+            let start = null;
+            function step(ts) {
+                if (!start) start = ts;
+                const p = Math.min((ts - start) / 1400, 1);
+                const ease = 1 - Math.pow(1 - p, 3);
+                el.textContent = isFloat ? (ease * target).toFixed(1) : Math.floor(ease * target).toLocaleString('fa-IR');
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+            observer.unobserve(el);
+        });
+    }, { threshold: 0.4 });
+    counters.forEach(c => observer.observe(c));
+}());
+
+// ── Chatbot ──────────────────────────────────────────────────
+const chatKB = {
+    'کاهش وزن':  'برای کاهش وزن علمی:\n• کالری دریافتی رو ۵۰۰ کمتر از TDEE کن\n• روزانه ۱.۸-۲ گرم پروتئین به ازای هر کیلو\n• ۳-۴ روز تمرین مقاومتی در هفته\n👉 /bmi — BMI خودت رو محاسبه کن',
+    'پروتئین':   'بهترین منابع پروتئین:\n🥩 سینه مرغ، تخم‌مرغ، ماهی\n🥛 پنیر کم‌چرب، شیر\n🌱 عدس، نخود، لوبیا\nهدف: روزانه ۱.۶-۲.۲g × وزن بدن',
+    'تمرین':     'پیشنهاد تمرینی ۴ روزه:\n• روز ۱: سینه + سه‌سر\n• روز ۲: پشت + دوسر\n• روز ۳: پا + سرشانه\n• روز ۴: کل بدن\n👉 /offline-classes — کلاس‌های ویدیویی',
+    'bmi':       'BMI سالم: ۱۸.۵ تا ۲۴.۹\n• زیر ۱۸.۵: کمبود وزن\n• ۱۸.۵-۲۴.۹: نرمال ✅\n• ۲۵-۲۹.۹: اضافه وزن\n👉 /bmi — محاسبه دقیق',
+    'رژیم':      'رژیم‌های اثبات‌شده:\n🌿 مدیترانه‌ای — سلامت عمومی\n⚡ کتوژنیک — کاهش وزن سریع\n💪 پروتئین بالا — عضله‌سازی\n👉 /nutrition — مقالات تخصصی',
+    'آب':        'آب‌رسانی:\n💧 روزانه ۸-۱۰ لیوان\n🏃 حین تمرین: هر ۲۰ دقیقه ۲۴۰ml\nکم‌آبی → ۳۰٪ افت عملکرد!',
+    'خواب':      'خواب و تغذیه:\n😴 ۷-۸ ساعت ضروری\n🌙 آخرین وعده ۲ ساعت قبل از خواب\nهورمون رشد در خواب ترشح می‌شه!',
+    'کالری':     'محاسبه کالری:\nمردان: BMR = ۸۸ + ۱۳.۴×وزن + ۴.۸×قد - ۵.۷×سن\nزنان: BMR = ۴۴۷ + ۹.۲×وزن + ۳.۱×قد - ۴.۳×سن\n👉 /bmi — همه چیز رو خودکار محاسبه می‌کنه',
+};
+function getBotReply(t) {
+    const l = t.toLowerCase();
+    for (const [k, v] of Object.entries(chatKB)) {
+        if (l.includes(k.toLowerCase())) return v;
+    }
+    if (/سلام|درود|هی/.test(l)) return 'سلام! 😊 خوش اومدی! چه سوالی داری؟';
+    if (/ممنون|مرسی|تشکر/.test(l)) return 'خواهش می‌کنم! 🙏 موفق باشی در مسیر سلامتی‌ات!';
+    return 'این سوال رو هنوز بلد نیستم جواب بدم 😅\nاز اینجا کمک بگیر:\n👉 /nutrition — مقالات تغذیه\n👉 /bmi — محاسبه BMI';
+}
+function addMsg(text, type) {
+    const msgs = document.getElementById('chatMessages');
+    if (!msgs) return;
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + type;
+    div.style.whiteSpace = 'pre-line';
+    div.innerHTML = text.replace(/👉 (\/\S+)/g, '👉 <a href="$1" style="color:#22c55e">$1</a>');
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+function sendChat() {
+    const input = document.getElementById('chatInput');
+    const txt = input.value.trim();
+    if (!txt) return;
+    addMsg(txt, 'user');
+    input.value = '';
+    const qb = document.getElementById('quickBtns');
+    if (qb) qb.style.display = 'none';
+    setTimeout(() => addMsg(getBotReply(txt), 'bot'), 500);
+}
+function sendQuick(txt) {
+    addMsg(txt, 'user');
+    const qb = document.getElementById('quickBtns');
+    if (qb) qb.style.display = 'none';
+    setTimeout(() => addMsg(getBotReply(txt), 'bot'), 500);
+}
+document.getElementById('chatbot-btn')?.addEventListener('click', () => {
+    document.getElementById('chatbot-window')?.classList.toggle('open');
+});
+document.getElementById('chatInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendChat();
+});
+
+// ── PWA Service Worker ───────────────────────────────────────
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+</script>
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

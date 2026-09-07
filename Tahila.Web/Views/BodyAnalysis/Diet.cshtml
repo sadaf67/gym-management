@@ -1,0 +1,324 @@
+@model Tahila.Application.Models.DietPlanModel
+@{ ViewData["Title"] = "رژیم غذایی شخصی"; }
+
+@section Styles {
+<style>
+.diet-hero { padding:60px 0 40px; background:linear-gradient(135deg,rgba(255,45,120,.08),rgba(13,13,13,1)); }
+.diet-card  { background:var(--dark-card);border:1px solid var(--dark-border);border-radius:18px;padding:1.6rem; }
+.diet-card.vip-card { border-color:rgba(255,45,120,.35);box-shadow:0 0 30px rgba(255,45,120,.08); }
+.macro-box  { background:rgba(255,255,255,.03);border:1px solid var(--dark-border);border-radius:14px;padding:1.2rem;text-align:center; }
+.macro-num  { font-size:2rem;font-weight:900; }
+.macro-bar-wrap { height:8px;background:var(--dark-border);border-radius:4px;margin-top:6px;overflow:hidden; }
+.macro-bar  { height:100%;border-radius:4px;transition:width 1s ease; }
+
+/* day tabs */
+.day-tabs   { display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none; }
+.day-tabs::-webkit-scrollbar { display:none; }
+.day-tab    { flex-shrink:0;padding:8px 18px;border-radius:10px;border:1px solid var(--dark-border);
+              background:var(--dark-card);color:var(--gray);cursor:pointer;font-size:.85rem;transition:all .2s; }
+.day-tab.active { border-color:var(--primary);background:rgba(255,45,120,.1);color:var(--primary);font-weight:700; }
+
+/* meal cards */
+.meal-card  { background:rgba(255,255,255,.025);border:1px solid var(--dark-border);border-radius:14px;padding:1rem 1.2rem;
+              display:flex;align-items:flex-start;gap:14px; }
+.meal-emoji { font-size:2rem;line-height:1;flex-shrink:0; }
+.meal-kcal  { background:rgba(255,45,120,.12);color:var(--primary);font-weight:700;font-size:.78rem;
+              padding:2px 10px;border-radius:20px; }
+
+/* food categories */
+.food-cat   { background:rgba(255,255,255,.025);border-radius:14px;padding:1rem 1.2rem;border:1px solid var(--dark-border); }
+.food-tag   { background:rgba(255,255,255,.05);border-radius:8px;padding:4px 12px;font-size:.82rem;color:var(--gray-light);
+              display:inline-block;margin:3px; }
+
+/* VIP lock */
+.vip-lock   { position:relative; }
+.vip-lock .lock-overlay {
+    position:absolute;inset:0;background:rgba(13,13,13,.88);border-radius:18px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    backdrop-filter:blur(4px);z-index:2;
+}
+.tip-item   { display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--dark-border); }
+.tip-item:last-child { border:none; }
+.tip-num    { width:26px;height:26px;border-radius:50%;background:rgba(255,45,120,.15);color:var(--primary);
+              font-weight:900;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.sup-item   { padding:10px 0;border-bottom:1px solid var(--dark-border);color:var(--gray-light);font-size:.9rem; }
+.sup-item:last-child { border:none; }
+</style>
+}
+
+<section class="diet-hero">
+<div class="container">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-5">
+        <div>
+            <h1 class="section-title">رژیم غذایی <span>شخصی</span></h1>
+            <div class="section-divider"></div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/bmi" class="btn-outline-tahila"><i class="fas fa-redo me-2"></i>محاسبه مجدد</a>
+            @if (User.Identity?.IsAuthenticated == true)
+            { <a href="/bmi/history" class="btn-outline-tahila"><i class="fas fa-history me-1"></i>تاریخچه</a> }
+        </div>
+    </div>
+
+    <!-- ── خلاصه هدف و کالری ── -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="diet-card h-100">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div style="width:52px;height:52px;background:rgba(255,45,120,.12);border-radius:14px;display:flex;align-items:center;justify-content:center">
+                        <i class="fas fa-bullseye" style="font-size:1.4rem;color:var(--primary)"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:.78rem;color:var(--gray)">هدف شما</div>
+                        <div style="font-weight:900;font-size:1.1rem;color:var(--primary)">@Model.Goal</div>
+                    </div>
+                </div>
+                <div style="background:rgba(255,45,120,.06);border-radius:12px;padding:1rem;text-align:center">
+                    <div style="font-size:3rem;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">@Model.TargetCalories</div>
+                    <div style="color:var(--gray);font-size:.85rem">کیلوکالری در روز</div>
+                </div>
+                <div class="d-flex justify-content-between mt-3" style="font-size:.82rem;color:var(--gray)">
+                    <span><i class="fas fa-fire me-1" style="color:var(--primary)"></i>BMR: @((int)Model.BMR)</span>
+                    <span>TDEE: @((int)Model.TDEE)</span>
+                </div>
+                <div class="mt-3" style="font-size:.82rem;color:var(--gray-light)">
+                    <i class="fas fa-tint me-1" style="color:#3b82f6"></i>
+                    روزانه حداقل <b style="color:#3b82f6">@Model.WaterLiters لیتر</b> آب بنوشید
+                </div>
+            </div>
+        </div>
+
+        <!-- ماکروها -->
+        <div class="col-lg-8">
+            <div class="diet-card h-100">
+                <h6 style="font-weight:700;margin-bottom:1.2rem"><i class="fas fa-chart-pie me-2" style="color:var(--primary)"></i>تقسیم‌بندی ماکروها</h6>
+                <div class="row g-3">
+                    @{
+                        int totalMacroKcal = Model.ProteinGrams * 4 + Model.CarbGrams * 4 + Model.FatGrams * 9;
+                        int pPct  = totalMacroKcal > 0 ? (int)(Model.ProteinGrams * 4 * 100.0 / totalMacroKcal) : 0;
+                        int cPct  = totalMacroKcal > 0 ? (int)(Model.CarbGrams    * 4 * 100.0 / totalMacroKcal) : 0;
+                        int fPct  = 100 - pPct - cPct;
+                    }
+                    <div class="col-md-4">
+                        <div class="macro-box">
+                            <div style="color:#ef4444;font-size:.78rem;font-weight:700;margin-bottom:4px"><i class="fas fa-drumstick-bite me-1"></i>پروتئین</div>
+                            <div class="macro-num" style="color:#ef4444">@Model.ProteinGrams<span style="font-size:1rem">گ</span></div>
+                            <div style="font-size:.75rem;color:var(--gray)">@(Model.ProteinGrams*4) kcal • @pPct%</div>
+                            <div class="macro-bar-wrap"><div class="macro-bar" style="width:@pPct%;background:#ef4444"></div></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="macro-box">
+                            <div style="color:#f97316;font-size:.78rem;font-weight:700;margin-bottom:4px"><i class="fas fa-wheat-awn me-1"></i>کربوهیدرات</div>
+                            <div class="macro-num" style="color:#f97316">@Model.CarbGrams<span style="font-size:1rem">گ</span></div>
+                            <div style="font-size:.75rem;color:var(--gray)">@(Model.CarbGrams*4) kcal • @cPct%</div>
+                            <div class="macro-bar-wrap"><div class="macro-bar" style="width:@cPct%;background:#f97316"></div></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="macro-box">
+                            <div style="color:#eab308;font-size:.78rem;font-weight:700;margin-bottom:4px"><i class="fas fa-droplet me-1"></i>چربی</div>
+                            <div class="macro-num" style="color:#eab308">@Model.FatGrams<span style="font-size:1rem">گ</span></div>
+                            <div style="font-size:.75rem;color:var(--gray)">@(Model.FatGrams*9) kcal • @fPct%</div>
+                            <div class="macro-bar-wrap"><div class="macro-bar" style="width:@fPct%;background:#eab308"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- نوار ماکرو کلی -->
+                <div style="height:10px;border-radius:5px;overflow:hidden;margin-top:1.2rem;display:flex;gap:2px">
+                    <div style="width:@pPct%;background:#ef4444;border-radius:5px 0 0 5px"></div>
+                    <div style="width:@cPct%;background:#f97316"></div>
+                    <div style="flex:1;background:#eab308;border-radius:0 5px 5px 0"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1" style="font-size:.72rem;color:var(--gray)">
+                    <span style="color:#ef4444">پروتئین @pPct%</span>
+                    <span style="color:#f97316">کربوهیدرات @cPct%</span>
+                    <span style="color:#eab308">چربی @fPct%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ── نکات کلی (رایگان) ── -->
+        <div class="col-lg-6">
+            <div class="diet-card h-100">
+                <h6 style="font-weight:700;margin-bottom:1.2rem">
+                    <i class="fas fa-lightbulb me-2" style="color:#eab308"></i>راهنمای تغذیه
+                </h6>
+                @for (int i = 0; i < Model.GeneralTips.Count; i++)
+                {
+                    <div class="tip-item">
+                        <div class="tip-num">@(i+1)</div>
+                        <div style="color:var(--gray-light);font-size:.88rem;line-height:1.7">@Model.GeneralTips[i]</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ── دسته‌بندی مواد غذایی (رایگان) ── -->
+        <div class="col-lg-6">
+            <div class="diet-card h-100">
+                <h6 style="font-weight:700;margin-bottom:1.2rem">
+                    <i class="fas fa-leaf me-2" style="color:#22c55e"></i>مواد غذایی مجاز
+                </h6>
+                <div class="row g-3">
+                    @foreach (var cat in Model.FoodCategories)
+                    {
+                        <div class="col-12">
+                            <div class="food-cat">
+                                <div style="font-weight:700;font-size:.88rem;color:@cat.Color;margin-bottom:8px">
+                                    @cat.Icon @cat.Title
+                                </div>
+                                @foreach (var item in cat.Items)
+                                { <span class="food-tag">@item</span> }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ── برنامه هفتگی VIP ── -->
+        <div class="col-12 vip-lock" id="vipSection">
+            @if (!Model.IsVip)
+            {
+                <div class="lock-overlay">
+                    <i class="fas fa-lock" style="font-size:2.5rem;color:var(--primary);opacity:.8"></i>
+                    <div style="font-weight:700;font-size:1.1rem">برنامه کامل هفتگی — ویژه اعضای VIP</div>
+                    <p style="color:var(--gray);font-size:.9rem;text-align:center;max-width:420px">
+                        برای دریافت برنامه غذایی کامل ۷ روزه با وعده‌های دقیق، لیست خرید و توصیه مکمل، اشتراک ویژه یا پرمیوم تهیه کنید.
+                    </p>
+                    <a href="/plans" class="btn-primary-tahila"><i class="fas fa-crown me-2"></i>خرید اشتراک VIP</a>
+                </div>
+            }
+            <div class="diet-card vip-card" style="@(Model.IsVip?"":"filter:blur(5px);pointer-events:none;user-select:none")">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <h5 style="font-weight:700;margin:0">
+                        <i class="fas fa-crown me-2" style="color:#f59e0b"></i>برنامه غذایی ۷ روزه
+                    </h5>
+                    <span style="background:rgba(245,158,11,.12);color:#f59e0b;padding:3px 12px;border-radius:20px;font-size:.78rem;font-weight:700">VIP</span>
+                </div>
+
+                <!-- Tabs -->
+                <div class="day-tabs mb-4" id="dayTabs">
+                    @for (int d = 0; d < Model.WeeklyPlan.Count; d++)
+                    {
+                        <div class="day-tab @(d==0?"active":"")" data-day="@d">
+                            <div style="font-size:.7rem;color:inherit;opacity:.7">@Model.WeeklyPlan[d].DayEn</div>
+                            <div>@Model.WeeklyPlan[d].DayName</div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Meal panels -->
+                @for (int d = 0; d < Model.WeeklyPlan.Count; d++)
+                {
+                    var day = Model.WeeklyPlan[d];
+                    <div class="day-panel @(d==0?"":"d-none")" data-panel="@d">
+                        <div class="row g-3">
+                            @{
+                                var meals = new[] {
+                                    (day.Breakfast, "صبحانه",    "#22c55e", "fas fa-sun"),
+                                    (day.Lunch,     "ناهار",     "#3b82f6", "fas fa-cloud-sun"),
+                                    (day.Snack,     "میان‌وعده", "#eab308", "fas fa-apple-alt"),
+                                    (day.Dinner,    "شام",       "#8b5cf6", "fas fa-moon"),
+                                };
+                            }
+                            @foreach (var (meal, label, color, icon) in meals)
+                            {
+                                <div class="col-md-6">
+                                    <div class="meal-card">
+                                        <div class="meal-emoji">@meal.Icon</div>
+                                        <div style="flex:1">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <div style="font-size:.72rem;color:@color;font-weight:700">
+                                                    <i class="@icon me-1"></i>@label
+                                                </div>
+                                                <span class="meal-kcal">@meal.Calories kcal</span>
+                                            </div>
+                                            <div style="font-weight:700;font-size:.95rem">@meal.Name</div>
+                                            <div style="color:var(--gray);font-size:.82rem;margin-top:3px">@meal.Description</div>
+                                            <div style="margin-top:6px;font-size:.78rem;color:#22c55e">
+                                                <i class="fas fa-drumstick-bite me-1"></i>پروتئین: @meal.Protein
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3" style="font-size:.85rem;color:var(--gray)">
+                            مجموع کالری روز: <b style="color:var(--primary)">@day.TotalCalories kcal</b>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ── لیست خرید + مکمل‌ها VIP ── -->
+        @if (Model.IsVip)
+        {
+            <div class="col-md-6">
+                <div class="diet-card vip-card">
+                    <h6 style="font-weight:700;margin-bottom:1.2rem">
+                        <i class="fas fa-shopping-basket me-2" style="color:#22c55e"></i>لیست خرید هفتگی
+                        <span style="background:rgba(245,158,11,.12);color:#f59e0b;padding:2px 10px;border-radius:20px;font-size:.7rem;font-weight:700;margin-right:8px">VIP</span>
+                    </h6>
+                    <div class="row g-2">
+                        @foreach (var item in Model.ShoppingList)
+                        {
+                            <div class="col-6">
+                                <div style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--gray-light);padding:6px 0">
+                                    <i class="fas fa-check-circle" style="color:#22c55e;font-size:.75rem;flex-shrink:0"></i>
+                                    @item
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="diet-card vip-card">
+                    <h6 style="font-weight:700;margin-bottom:1.2rem">
+                        <i class="fas fa-pills me-2" style="color:#8b5cf6"></i>توصیه مکمل‌ها
+                        <span style="background:rgba(245,158,11,.12);color:#f59e0b;padding:2px 10px;border-radius:20px;font-size:.7rem;font-weight:700;margin-right:8px">VIP</span>
+                    </h6>
+                    @foreach (var sup in Model.Supplements)
+                    {
+                        <div class="sup-item">@sup</div>
+                    }
+                </div>
+            </div>
+        }
+
+    </div>
+
+    <!-- Action buttons -->
+    <div class="d-flex gap-3 flex-wrap mt-5">
+        <a href="/plans" class="btn-primary-tahila"><i class="fas fa-crown me-2"></i>ارتقا به VIP</a>
+        <a href="/bmi" class="btn-outline-tahila"><i class="fas fa-redo me-2"></i>محاسبه مجدد</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        { <a href="/bmi/history" class="btn-outline-tahila"><i class="fas fa-history me-2"></i>تاریخچه</a> }
+    </div>
+
+</div>
+</section>
+
+@section Scripts {
+<script>
+// Day tabs
+document.querySelectorAll('.day-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        const d = tab.dataset.day;
+        document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.day-panel').forEach(p => p.classList.add('d-none'));
+        tab.classList.add('active');
+        document.querySelector(`.day-panel[data-panel="${d}"]`).classList.remove('d-none');
+    });
+});
+</script>
+}

@@ -1,0 +1,22 @@
+{
+  "name": "تهیلا — باشگاه حرفه‌ای",
+  "short_name": "تهیلا",
+  "description": "مرکز تخصصی تمرین، تغذیه و سلامت",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0D0D0D",
+  "theme_color": "#FF2D78",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": [
+    { "src": "/img/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "محاسبه BMI", "url": "/bmi", "icons": [{ "src": "/img/logo.svg", "sizes": "any" }] },
+    { "name": "مرکز تغذیه", "url": "/nutrition", "icons": [{ "src": "/img/logo.svg", "sizes": "any" }] },
+    { "name": "کلاس آفلاین", "url": "/offline-classes", "icons": [{ "src": "/img/logo.svg", "sizes": "any" }] }
+  ],
+  "categories": ["health", "fitness", "sports"]
+}

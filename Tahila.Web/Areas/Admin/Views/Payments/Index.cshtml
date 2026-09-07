@@ -1,0 +1,54 @@
+@model IEnumerable<Tahila.Domain.Entities.Payment>
+@{ Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; ViewData["PageTitle"] = "پرداخت‌ها"; }
+
+@{
+    var total = Model.Where(p => p.Status == Tahila.Domain.Enums.PaymentStatus.Success).Sum(p => p.Amount);
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <div><div class="value">@total.ToString("N0")</div><div class="label">درآمد کل (تومان)</div></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-credit-card"></i></div>
+            <div><div class="value">@Model.Count(p => p.Status == Tahila.Domain.Enums.PaymentStatus.Success)</div><div class="label">پرداخت موفق</div></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-clock"></i></div>
+            <div><div class="value">@Model.Count(p => p.Status == Tahila.Domain.Enums.PaymentStatus.Pending)</div><div class="label">در انتظار</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="tahila-card" style="overflow:hidden">
+    <table class="table-tahila w-100">
+        <thead><tr><th>#</th><th>کاربر</th><th>پلن</th><th>مبلغ</th><th>کد پیگیری</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td style="color:var(--gray);font-size:.8rem">@p.Id</td>
+                <td>@p.UserId</td>
+                <td style="color:var(--gray)">@(p.Subscription?.Plan?.Name ?? "—")</td>
+                <td style="color:var(--primary);font-weight:700">@p.Amount.ToString("N0")</td>
+                <td style="font-size:.8rem;color:var(--gray)">@(p.RefId ?? p.Authority ?? "—")</td>
+                <td>
+                    @switch(p.Status)
+                    {
+                        case Tahila.Domain.Enums.PaymentStatus.Success: <span class="badge-active">موفق</span> break;
+                        case Tahila.Domain.Enums.PaymentStatus.Pending: <span class="badge-pending">در انتظار</span> break;
+                        default: <span class="badge-inactive">ناموفق</span> break;
+                    }
+                </td>
+                <td style="color:var(--gray);font-size:.85rem">@p.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

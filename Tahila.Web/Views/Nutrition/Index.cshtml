@@ -1,0 +1,199 @@
+@{
+    ViewData["Title"] = "مرکز تغذیه و سلامت";
+    var articles   = ViewBag.Articles   as IEnumerable<Tahila.Domain.Entities.NutritionArticle> ?? [];
+    var featured   = ViewBag.Featured   as IEnumerable<Tahila.Domain.Entities.NutritionArticle> ?? [];
+    var categories = ViewBag.Categories as IEnumerable<string> ?? [];
+    string? activeCat = ViewBag.ActiveCat as string;
+}
+
+@section Styles {
+<style>
+.nut-hero { padding:80px 0 50px; background:linear-gradient(135deg,rgba(34,197,94,.08) 0%,rgba(13,13,13,1) 60%); }
+.nut-card { background:var(--dark-card);border:1px solid var(--dark-border);border-radius:18px;overflow:hidden;transition:all .3s;height:100%; }
+.nut-card:hover { border-color:#22c55e;transform:translateY(-4px);box-shadow:0 16px 40px rgba(34,197,94,.1); }
+.nut-thumb { aspect-ratio:16/9;overflow:hidden; }
+.nut-thumb img { width:100%;height:100%;object-fit:cover;transition:transform .4s; }
+.nut-card:hover .nut-thumb img { transform:scale(1.06); }
+.cat-pill { display:inline-block;padding:3px 12px;border-radius:20px;font-size:.72rem;font-weight:700; }
+.nut-stat { display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--gray); }
+.featured-card { background:linear-gradient(135deg,rgba(34,197,94,.08),var(--dark-card));border-color:rgba(34,197,94,.2); }
+
+/* quick stats bar */
+.stats-bar { background:var(--dark-card);border:1px solid var(--dark-border);border-radius:16px;padding:1.2rem 2rem; }
+.stat-item { text-align:center;padding:0 1.5rem;border-left:1px solid var(--dark-border); }
+.stat-item:last-child { border:none; }
+
+/* tip cards */
+.tip-card { background:rgba(255,255,255,.025);border:1px solid var(--dark-border);border-radius:14px;padding:1.2rem;transition:border-color .2s; }
+.tip-card:hover { border-color:var(--primary); }
+.tip-icon { width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.8rem; }
+
+/* cat filter */
+.cat-filters { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2rem; }
+.cat-filter-btn { padding:7px 18px;border-radius:30px;border:1px solid var(--dark-border);background:transparent;color:var(--gray);font-size:.85rem;cursor:pointer;transition:all .2s;text-decoration:none; }
+.cat-filter-btn:hover,.cat-filter-btn.active { border-color:#22c55e;color:#22c55e;background:rgba(34,197,94,.08); }
+</style>
+}
+
+<section class="nut-hero">
+<div class="container">
+
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);padding:6px 18px;border-radius:30px;margin-bottom:1rem">
+            <i class="fas fa-leaf" style="color:#22c55e;font-size:.85rem"></i>
+            <span style="color:#22c55e;font-size:.82rem;font-weight:700">مرکز تخصصی تغذیه</span>
+        </div>
+        <h1 class="section-title">دانش تغذیه <span>حرفه‌ای</span></h1>
+        <div class="section-divider mx-auto"></div>
+        <p style="color:var(--gray);max-width:560px;margin:0 auto">راهنمای علمی تغذیه، رژیم‌های اثبات‌شده و توصیه‌های تخصصی برای رسیدن به بهترین نسخه خودت</p>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="stats-bar d-flex justify-content-center flex-wrap gap-3 mb-5">
+        <div class="stat-item">
+            <div style="font-size:1.6rem;font-weight:900;color:#22c55e">@articles.Count()</div>
+            <div style="font-size:.78rem;color:var(--gray)">مقاله تخصصی</div>
+        </div>
+        <div class="stat-item">
+            <div style="font-size:1.6rem;font-weight:900;color:var(--primary)">@categories.Count()</div>
+            <div style="font-size:.78rem;color:var(--gray)">دسته‌بندی</div>
+        </div>
+        <div class="stat-item">
+            <div style="font-size:1.6rem;font-weight:900;color:#3b82f6">رایگان</div>
+            <div style="font-size:.78rem;color:var(--gray)">دسترسی کامل</div>
+        </div>
+        <div class="stat-item">
+            <div style="font-size:1.6rem;font-weight:900;color:#f59e0b">علمی</div>
+            <div style="font-size:.78rem;color:var(--gray)">مبتنی بر شواهد</div>
+        </div>
+    </div>
+
+    <!-- ── Featured Articles ── -->
+    @if (featured.Any())
+    {
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <h5 style="font-weight:700;margin-bottom:1.2rem">
+                    <i class="fas fa-star me-2" style="color:#f59e0b"></i>مقالات ویژه
+                </h5>
+            </div>
+            @foreach (var a in featured)
+            {
+                <div class="col-md-4">
+                    <a href="/nutrition/@a.Slug" style="text-decoration:none">
+                        <div class="nut-card featured-card">
+                            @if (!string.IsNullOrEmpty(a.ThumbnailUrl))
+                            {
+                                <div class="nut-thumb">
+                                    <img src="@a.ThumbnailUrl" alt="@a.Title" loading="lazy"/>
+                                </div>
+                            }
+                            <div style="padding:1.2rem">
+                                <span class="cat-pill" style="background:rgba(34,197,94,.12);color:#22c55e;margin-bottom:.6rem">@a.Category</span>
+                                <h6 style="font-weight:700;color:var(--white);line-height:1.5;margin-bottom:.5rem">@a.Title</h6>
+                                <p style="color:var(--gray);font-size:.82rem;line-height:1.6;margin-bottom:.8rem">
+                                    @(a.Summary.Length > 90 ? a.Summary[..90]+"…" : a.Summary)
+                                </p>
+                                <div class="d-flex gap-3">
+                                    <span class="nut-stat"><i class="fas fa-clock"></i>@a.ReadMinutes دقیقه</span>
+                                    <span class="nut-stat"><i class="fas fa-eye"></i>@a.ViewCount بازدید</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ── Category filter ── -->
+    <div class="cat-filters">
+        <a href="/nutrition" class="cat-filter-btn @(activeCat==null?"active":"")">همه مقالات</a>
+        @foreach (var c in categories)
+        { <a href="/nutrition?cat=@Uri.EscapeDataString(c)" class="cat-filter-btn @(activeCat==c?"active":"")">@c</a> }
+    </div>
+
+    <!-- ── All Articles grid ── -->
+    <div class="row g-4">
+        @foreach (var a in articles)
+        {
+            <div class="col-md-6 col-lg-4">
+                <a href="/nutrition/@a.Slug" style="text-decoration:none">
+                    <div class="nut-card">
+                        @if (!string.IsNullOrEmpty(a.ThumbnailUrl))
+                        {
+                            <div class="nut-thumb">
+                                <img src="@a.ThumbnailUrl" alt="@a.Title" loading="lazy"/>
+                            </div>
+                        }
+                        <div style="padding:1.1rem">
+                            <span class="cat-pill mb-2" style="background:rgba(255,45,120,.1);color:var(--primary)">@a.Category</span>
+                            <h6 style="font-weight:700;color:var(--white);line-height:1.5;margin:.5rem 0">@a.Title</h6>
+                            <p style="color:var(--gray);font-size:.82rem;margin-bottom:.8rem;line-height:1.6">
+                                @(a.Summary.Length > 80 ? a.Summary[..80]+"…" : a.Summary)
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex gap-3">
+                                    <span class="nut-stat"><i class="fas fa-clock"></i>@a.ReadMinutes دقیقه</span>
+                                    <span class="nut-stat"><i class="fas fa-eye"></i>@a.ViewCount</span>
+                                </div>
+                                <span style="color:var(--primary);font-size:.8rem;font-weight:700">بیشتر ←</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+
+    @if (!articles.Any())
+    {
+        <div class="text-center py-5" style="color:var(--gray)">
+            <i class="fas fa-seedling" style="font-size:3rem;opacity:.3"></i>
+            <p class="mt-3">مقاله‌ای در این دسته‌بندی یافت نشد.</p>
+        </div>
+    }
+
+    <!-- ── Quick tips section ── -->
+    <div class="mt-6 pt-5" style="border-top:1px solid var(--dark-border);margin-top:4rem">
+        <h5 style="font-weight:700;margin-bottom:1.5rem;text-align:center">
+            <i class="fas fa-lightbulb me-2" style="color:#f59e0b"></i>۸ اصل طلایی تغذیه سالم
+        </h5>
+        <div class="row g-3">
+            @{
+                var tips = new[] {
+                    ("🥩","پروتئین کافی","#ef4444","روزانه ۱.۶ تا ۲.۲ گرم پروتئین به ازای هر کیلوگرم وزن بدن مصرف کنید. این برای حفظ و رشد عضلات حیاتی است."),
+                    ("💧","آبرسانی مداوم","#3b82f6","روزانه ۸ تا ۱۰ لیوان آب بنوشید. کم‌آبی متابولیسم را کند می‌کند و عملکرد مغز را ضعیف می‌سازد."),
+                    ("🥦","سبزیجات رنگی","#22c55e","نصف بشقابت رو سبزیجات رنگارنگ پر کن. هر رنگ آنتی‌اکسیدان‌های متفاوتی داره که بدنت نیاز داره."),
+                    ("🌾","کربوهیدرات هوشمند","#f97316","کربوهیدرات دشمن نیست! برنج قهوه‌ای، جو و سیب‌زمینی شیرین منابع انرژی پایداری هستند."),
+                    ("⏰","وعده‌های منظم","#8b5cf6","هر ۳ تا ۴ ساعت یک وعده یا میان‌وعده داشته باش. این قند خون رو ثابت نگه می‌داره و پرخوری رو کاهش میده."),
+                    ("🚫","قند ساده کمتر","#ff6b6b","قندهای افزوده و نوشابه‌ها رو به حداقل برسون. قند ساده سریع جذب میشه و باعث نوسانات انرژی و تجمع چربی میشه."),
+                    ("🥑","چربی سالم","#eab308","چربی‌های سالم مثل آووکادو، زیتون و آجیل را فراموش نکن. این‌ها هورمون‌ها رو تنظیم می‌کنند."),
+                    ("😴","خواب و تغذیه","#06b6d4","خواب کافی (۷-۸ ساعت) بخش جدانشدنی تغذیه صحیح است. در خواب هورمون رشد و لپتین ترشح می‌شود."),
+                };
+            }
+            @foreach (var (icon, title, color, desc) in tips)
+            {
+                <div class="col-md-6 col-lg-3">
+                    <div class="tip-card">
+                        <div class="tip-icon" style="background:@(color)18;color:@color">@icon</div>
+                        <div style="font-weight:700;font-size:.9rem;margin-bottom:.4rem">@title</div>
+                        <div style="color:var(--gray);font-size:.8rem;line-height:1.6">@desc</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center mt-5 pt-4">
+        <div style="background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(255,45,120,.05));border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:2.5rem">
+            <h4 style="font-weight:900;margin-bottom:.5rem">رژیم غذایی شخصی‌سازی‌شده بگیر</h4>
+            <p style="color:var(--gray);margin-bottom:1.5rem">بر اساس BMI، TDEE و هدفت — رایگان و فوری</p>
+            <a href="/bmi" class="btn-primary-tahila"><i class="fas fa-calculator me-2"></i>شروع محاسبه BMI</a>
+        </div>
+    </div>
+
+</div>
+</section>

@@ -1,0 +1,49 @@
+@model Tahila.Web.Models.LoginViewModel
+@{ ViewData["Title"] = "ورود"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<section style="min-height:80vh;display:flex;align-items:center;padding:60px 0">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="tahila-card p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div style="font-size:2.5rem;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">ورود</div>
+                        <p style="color:var(--gray);margin-top:.5rem">به حساب کاربری خود وارد شوید</p>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:10px;padding:12px;margin-bottom:1rem;font-size:.9rem">
+                            @Html.ValidationSummary(false)
+                        </div>
+                    }
+
+                    <form method="post" class="form-tahila">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ReturnUrl"/>
+                        <div class="mb-3">
+                            <label>ایمیل</label>
+                            <input class="form-control" asp-for="Email" type="email" placeholder="example@email.com" autofocus/>
+                        </div>
+                        <div class="mb-3">
+                            <label>رمز عبور</label>
+                            <input class="form-control" asp-for="Password" type="password" placeholder="••••••"/>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="RememberMe" id="rememberMe"/>
+                                <label class="form-check-label" for="rememberMe" style="color:var(--gray-light);font-size:.9rem">مرا به خاطر بسپار</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary-tahila w-100 text-center d-block">ورود</button>
+                    </form>
+
+                    <div class="text-center mt-4" style="color:var(--gray);font-size:.9rem">
+                        حساب کاربری ندارید؟
+                        <a href="/account/register" style="color:var(--primary);text-decoration:none;font-weight:700">ثبت‌نام کنید</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

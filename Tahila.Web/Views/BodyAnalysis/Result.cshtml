@@ -1,0 +1,310 @@
+@model Tahila.Domain.Entities.BodyAnalysis
+@{ ViewData["Title"] = "نتیجه تحلیل بدن"; }
+
+@section Styles {
+<style>
+.result-hero { padding: 60px 0 40px; background: linear-gradient(135deg, rgba(255,45,120,.08), rgba(13,13,13,1)); }
+.result-card { background: var(--dark-card); border: 1px solid var(--dark-border); border-radius: 20px; padding: 1.8rem; height: 100%; }
+.result-card.highlight { border-color: var(--primary); box-shadow: 0 0 30px rgba(255,45,120,.15); }
+.big-number { font-size: 3.5rem; font-weight: 900; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+.metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--dark-border); }
+.metric-row:last-child { border-bottom: none; }
+.metric-label { color: var(--gray); font-size: .9rem; }
+.metric-value { font-weight: 700; font-size: 1rem; }
+.bmi-bar-wrap { height: 14px; border-radius: 7px; overflow: hidden; background: linear-gradient(to left, #ef4444 0%, #f97316 20%, #eab308 40%, #22c55e 50%, #3b82f6 70%, #8b5cf6 100%); position: relative; margin: 1rem 0; }
+.bmi-needle { position: absolute; top: -4px; width: 3px; height: 22px; background: #fff; border-radius: 2px; transform: translateX(-50%); box-shadow: 0 0 6px rgba(0,0,0,.6); transition: left .8s ease; }
+.bmi-labels { display: flex; justify-content: space-between; color: var(--gray); font-size: .68rem; margin-top: 4px; }
+.fat-gauge { position: relative; width: 160px; height: 80px; margin: 0 auto 1rem; }
+.fat-gauge svg { width: 160px; height: 80px; }
+.recommendation-item { padding: 10px 0 10px 0; border-bottom: 1px solid var(--dark-border); color: var(--gray-light); font-size: .92rem; line-height: 1.7; }
+.recommendation-item:last-child { border: none; }
+.cat-badge { padding: 6px 18px; border-radius: 20px; font-weight: 700; font-size: .9rem; display: inline-block; }
+</style>
+}
+
+@{
+    // BMI needle position (BMI 10–40 → 0–100%)
+    double needlePos = Math.Clamp((Model.BMI - 10.0) / 30.0 * 100.0, 0, 100);
+    // BMI category color
+    string catColor;
+    if (Model.BMI < 18.5f)      catColor = "#3b82f6";
+    else if (Model.BMI < 25f)   catColor = "#22c55e";
+    else if (Model.BMI < 30f)   catColor = "#eab308";
+    else if (Model.BMI < 35f)   catColor = "#f97316";
+    else                        catColor = "#ef4444";
+    string catBg = catColor + "22";
+    var recommendations = Model.Recommendation.Split(" | ").ToList();
+    // TDEE targets
+    float tdeeWeightLoss = Model.TDEE - 500;
+    float tdeeWeightGain = Model.TDEE + 300;
+}
+
+<section class="result-hero">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-5">
+            <div>
+                <h1 class="section-title">نتیجه <span>تحلیل بدن</span></h1>
+                <div class="section-divider"></div>
+            </div>
+            <div class="d-flex gap-3">
+                <a href="/bmi" class="btn-outline-tahila"><i class="fas fa-redo me-2"></i>محاسبه مجدد</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                { <a href="/bmi/history" class="btn-primary-tahila"><i class="fas fa-history me-2"></i>تاریخچه</a> }
+            </div>
+        </div>
+
+        <div class="row g-4">
+
+            <!-- ── BMI اصلی ── -->
+            <div class="col-lg-4">
+                <div class="result-card highlight text-center">
+                    <div style="color:var(--gray);font-size:.85rem;margin-bottom:.5rem">شاخص توده بدنی</div>
+                    <div class="big-number">@Model.BMI</div>
+                    <span class="cat-badge mt-2" style="background:@catBg;color:@catColor">
+                        @Model.BMICategory
+                    </span>
+
+                    <!-- نوار BMI -->
+                    <div class="mt-4">
+                        <div class="bmi-bar-wrap">
+                            <div class="bmi-needle" style="left:@needlePos%"></div>
+                        </div>
+                        <div class="bmi-labels">
+                            <span>لاغر</span><span>نرمال</span><span>اضافه</span><span>چاق</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-row mt-3">
+                        <span class="metric-label">وزن شما</span>
+                        <span class="metric-value">@Model.Weight کیلو</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">قد</span>
+                        <span class="metric-value">@Model.Height سانتی‌متر</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">سن</span>
+                        <span class="metric-value">@Model.Age سال</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">جنسیت</span>
+                        <span class="metric-value">@(Model.IsMale ? "آقا" : "خانم")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── وزن ایده‌آل + چربی ── -->
+            <div class="col-lg-4">
+                <div class="result-card mb-4">
+                    <h6 style="font-weight:700;margin-bottom:1.2rem"><i class="fas fa-weight-scale me-2" style="color:var(--primary)"></i>وزن ایده‌آل</h6>
+                    <div class="text-center my-3">
+                        <div style="font-size:2rem;font-weight:900;color:var(--primary)">
+                            @Model.IdealWeightMin – @Model.IdealWeightMax
+                            <span style="font-size:1rem;color:var(--gray)">کیلو</span>
+                        </div>
+                    </div>
+                    @{
+                        float diff = Model.Weight - Model.IdealWeightMax;
+                        bool overWeight = diff > 0;
+                        bool underWeight = Model.Weight < Model.IdealWeightMin;
+                    }
+                    @if (overWeight)
+                    {
+                        <div style="background:rgba(239,68,68,.08);border-radius:10px;padding:10px;text-align:center;color:#ef4444;font-size:.9rem">
+                            <i class="fas fa-arrow-down me-1"></i>باید @Math.Round(diff,1) کیلو کم کنید
+                        </div>
+                    }
+                    else if (underWeight)
+                    {
+                        <div style="background:rgba(59,130,246,.08);border-radius:10px;padding:10px;text-align:center;color:#3b82f6;font-size:.9rem">
+                            <i class="fas fa-arrow-up me-1"></i>باید @Math.Round(Model.IdealWeightMin - Model.Weight,1) کیلو اضافه کنید
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="background:rgba(34,197,94,.08);border-radius:10px;padding:10px;text-align:center;color:#22c55e;font-size:.9rem">
+                            <i class="fas fa-check me-1"></i>وزن شما در محدوده ایده‌آل است
+                        </div>
+                    }
+                </div>
+
+                @if (Model.BodyFatPercentage.HasValue)
+                {
+                    <div class="result-card">
+                        <h6 style="font-weight:700;margin-bottom:1.2rem"><i class="fas fa-percent me-2" style="color:var(--primary)"></i>ترکیب بدنی</h6>
+                        @{
+                            float fat = Model.BodyFatPercentage.Value;
+                            float lean = 100 - fat;
+                            string fatColor;
+                            if (Model.IsMale ? fat > 25 : fat > 35)      fatColor = "#ef4444";
+                            else if (Model.IsMale ? fat < 10 : fat < 18) fatColor = "#3b82f6";
+                            else                                          fatColor = "#22c55e";
+                        }
+                        <!-- Gauge -->
+                        <div class="text-center mb-3">
+                            <svg viewBox="0 0 160 90" style="width:160px">
+                                <path d="M20,80 A60,60 0 0,1 140,80" fill="none" stroke="#2a2a2a" stroke-width="14" stroke-linecap="round"/>
+                                <path d="M20,80 A60,60 0 0,1 140,80" fill="none" stroke="@fatColor" stroke-width="14" stroke-linecap="round"
+                                      stroke-dasharray="@(Math.Round(fat/100.0*188,0)) 188" style="transition:stroke-dasharray 1s ease"/>
+                                <text x="80" y="75" text-anchor="middle" fill="@fatColor" font-size="22" font-weight="900">@fat%</text>
+                            </svg>
+                            <div style="color:var(--gray);font-size:.8rem">درصد چربی بدن</div>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">چربی بدن</span>
+                            <span class="metric-value" style="color:@fatColor">@fat%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">توده عضلانی (تخمین)</span>
+                            <span class="metric-value" style="color:#22c55e">@Model.LeanBodyMass کیلو</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">وزن چربی</span>
+                            <span class="metric-value">@Math.Round(Model.Weight * fat / 100, 1) کیلو</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- ── کالری و متابولیسم ── -->
+            <div class="col-lg-4">
+                <div class="result-card mb-4">
+                    <h6 style="font-weight:700;margin-bottom:1.2rem"><i class="fas fa-fire me-2" style="color:var(--primary)"></i>متابولیسم</h6>
+                    <div class="metric-row">
+                        <span class="metric-label">BMR (متابولیسم پایه)</span>
+                        <span class="metric-value" style="color:var(--primary)">@Model.BMR kcal</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">TDEE (نیاز روزانه)</span>
+                        <span class="metric-value" style="color:var(--primary)">@Model.TDEE kcal</span>
+                    </div>
+                    <div style="height:1px;background:var(--dark-border);margin:1rem 0"></div>
+                    <div style="font-size:.82rem;color:var(--gray);margin-bottom:.8rem">هدف‌های کالری روزانه:</div>
+                    <div class="metric-row">
+                        <span class="metric-label"><i class="fas fa-arrow-down me-1" style="color:#22c55e"></i>کاهش وزن</span>
+                        <span class="metric-value">@tdeeWeightLoss kcal</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label"><i class="fas fa-minus me-1" style="color:#eab308"></i>حفظ وزن</span>
+                        <span class="metric-value">@Model.TDEE kcal</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label"><i class="fas fa-arrow-up me-1" style="color:#ef4444"></i>افزایش وزن</span>
+                        <span class="metric-value">@tdeeWeightGain kcal</span>
+                    </div>
+                </div>
+
+                <!-- BMI جدول مرجع -->
+                <div class="result-card">
+                    <h6 style="font-weight:700;margin-bottom:1rem"><i class="fas fa-table me-2" style="color:var(--primary)"></i>جدول BMI</h6>
+                    @{
+                        var bmiRanges = new[] {
+                            ("<16",        "لاغری شدید",       "#8b5cf6"),
+                            ("16–17",      "لاغری متوسط",      "#3b82f6"),
+                            ("17–18.5",    "کمتر از نرمال",    "#06b6d4"),
+                            ("18.5–24.9",  "نرمال ✓",          "#22c55e"),
+                            ("25–29.9",    "اضافه وزن",        "#eab308"),
+                            ("30–34.9",    "چاقی درجه ۱",      "#f97316"),
+                            ("35–39.9",    "چاقی درجه ۲",      "#ef4444"),
+                            (">40",        "چاقی شدید",        "#be123c"),
+                        };
+                    }
+                    @foreach (var (range, label, color) in bmiRanges)
+                    {
+                        bool isCurrent = label.Replace(" ✓","") == Model.BMICategory || label == Model.BMICategory;
+                        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--dark-border);background:@(isCurrent?"rgba(255,45,120,.07)":"transparent");border-radius:@(isCurrent?"6px":"0");padding-right:@(isCurrent?"8px":"0")">
+                            <span style="font-size:.78rem;color:@color;font-weight:@(isCurrent?"700":"400")">@label</span>
+                            <span style="font-size:.78rem;color:var(--gray)">@range</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ── توصیه‌های شخصی ── -->
+            <div class="col-12">
+                <div class="result-card">
+                    <h5 style="font-weight:700;margin-bottom:1.5rem">
+                        <i class="fas fa-lightbulb me-2" style="color:var(--primary)"></i>
+                        توصیه‌های شخصی برای شما
+                    </h5>
+                    <div class="row g-3">
+                        @foreach (var (rec, i) in recommendations.Select((r,i)=>(r,i)))
+                        {
+                            string[] icons = ["fas fa-bullseye","fas fa-utensils","fas fa-dumbbell","fas fa-fire","fas fa-chart-line","fas fa-heartbeat"];
+                            string[] colors2 = ["#FF2D78","#22c55e","#3b82f6","#f97316","#8b5cf6","#06b6d4"];
+                            string ico = icons[i % icons.Length];
+                            string col = colors2[i % colors2.Length];
+                            <div class="col-md-6">
+                                <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(255,255,255,.02);border-radius:12px;border:1px solid var(--dark-border)">
+                                    <div style="width:36px;height:36px;background:@(col)22;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                        <i class="@ico" style="color:@col;font-size:.85rem"></i>
+                                    </div>
+                                    <p style="color:var(--gray-light);font-size:.88rem;line-height:1.7;margin:0">@rec</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── دکمه‌های اقدام ── -->
+            <div class="col-12">
+                <!-- دریافت رژیم -->
+                @if (Model.Id > 0)
+                {
+                    <div style="background:linear-gradient(135deg,rgba(255,45,120,.1),rgba(245,158,11,.06));border:1px solid rgba(255,45,120,.25);border-radius:16px;padding:1.4rem 1.6rem;margin-bottom:1.4rem">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:50px;height:50px;background:rgba(255,45,120,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                    <i class="fas fa-utensils" style="font-size:1.3rem;color:var(--primary)"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight:700;font-size:1rem">رژیم غذایی شخصی‌سازی‌شده</div>
+                                    <div style="color:var(--gray);font-size:.85rem">بر اساس BMI، TDEE و هدف شما — رایگان + نسخه VIP کامل</div>
+                                </div>
+                            </div>
+                            <a href="/bmi/diet/@Model.Id" class="btn-primary-tahila">
+                                <i class="fas fa-carrot me-2"></i>دریافت رژیم غذایی
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <form method="post" action="/bmi/diet-quick" class="mb-4">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Weight"     value="@Model.Weight"/>
+                        <input type="hidden" name="Height"     value="@Model.Height"/>
+                        <input type="hidden" name="Age"        value="@Model.Age"/>
+                        <input type="hidden" name="IsMale"     value="@Model.IsMale"/>
+                        <input type="hidden" name="ActivityLevel" value="@Model.ActivityLevel"/>
+                        <div style="background:linear-gradient(135deg,rgba(255,45,120,.1),rgba(245,158,11,.06));border:1px solid rgba(255,45,120,.25);border-radius:16px;padding:1.4rem 1.6rem">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div>
+                                    <div style="font-weight:700">رژیم غذایی شخصی‌سازی‌شده</div>
+                                    <div style="color:var(--gray);font-size:.85rem">بر اساس نتیجه BMI شما — رایگان</div>
+                                </div>
+                                <button type="submit" class="btn-primary-tahila">
+                                    <i class="fas fa-carrot me-2"></i>دریافت رژیم غذایی
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                }
+
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="/plans" class="btn-outline-tahila"><i class="fas fa-dumbbell me-2"></i>خرید اشتراک</a>
+                    <a href="/bmi" class="btn-outline-tahila"><i class="fas fa-redo me-2"></i>محاسبه مجدد</a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    { <a href="/bmi/history" class="btn-outline-tahila"><i class="fas fa-history me-2"></i>تاریخچه من</a> }
+                    else
+                    { <a href="/account/register" class="btn-outline-tahila"><i class="fas fa-user-plus me-2"></i>ثبت‌نام رایگان</a> }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>

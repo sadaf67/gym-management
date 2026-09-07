@@ -1,0 +1,116 @@
+@model Tahila.Domain.Entities.ClassSession
+@{
+    ViewData["Title"] = Model.Title;
+    var cls = Model.OfflineClass;
+    // Convert YouTube watch URL to embed URL if needed
+    string videoUrl = Model.VideoUrl;
+    if (videoUrl.Contains("youtube.com/watch?v="))
+        videoUrl = videoUrl.Replace("watch?v=", "embed/");
+    else if (videoUrl.Contains("youtu.be/"))
+        videoUrl = videoUrl.Replace("youtu.be/", "youtube.com/embed/");
+}
+
+@section Styles {
+<style>
+.watch-wrap   { background:#000;position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden; }
+.watch-wrap iframe { width:100%;height:100%;border:none; }
+.session-list-item { padding:10px 14px;border-radius:10px;border:1px solid var(--dark-border);display:flex;gap:10px;
+                     align-items:center;text-decoration:none;color:inherit;transition:border-color .2s;background:var(--dark-card); }
+.session-list-item:hover { border-color:var(--primary); }
+.session-list-item.active { border-color:var(--primary);background:rgba(255,45,120,.07); }
+.session-list-item.locked { opacity:.55; }
+</style>
+}
+
+<section style="padding:50px 0 60px">
+<div class="container">
+    <div class="row g-4">
+
+        <!-- ── ویدیو اصلی ── -->
+        <div class="col-lg-8">
+            <!-- breadcrumb -->
+            <div style="font-size:.82rem;color:var(--gray);margin-bottom:1rem">
+                <a href="/offline-classes" style="color:var(--gray)">کلاس‌های آفلاین</a>
+                <span class="mx-2">›</span>
+                <a href="/offline-classes/@cls.Id" style="color:var(--gray)">@cls.Title</a>
+                <span class="mx-2">›</span>
+                <span style="color:var(--white)">جلسه @Model.SessionNumber</span>
+            </div>
+
+            <!-- player -->
+            <div class="watch-wrap mb-4">
+                <iframe src="@videoUrl?rel=0&modestbranding=1&autoplay=1"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+            </div>
+
+            <!-- عنوان و اطلاعات -->
+            <div style="background:var(--dark-card);border:1px solid var(--dark-border);border-radius:16px;padding:1.4rem">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span style="background:rgba(255,45,120,.12);color:var(--primary);font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:20px">
+                        جلسه @Model.SessionNumber
+                    </span>
+                    @if (Model.IsFree)
+                    { <span style="background:rgba(34,197,94,.1);color:#22c55e;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:20px"><i class="fas fa-gift me-1"></i>رایگان</span> }
+                    <span style="color:var(--gray);font-size:.78rem"><i class="fas fa-clock me-1"></i>@Model.DurationMinutes دقیقه</span>
+                </div>
+                <h4 style="font-weight:900;margin-bottom:.8rem">@Model.Title</h4>
+                @if (!string.IsNullOrEmpty(Model.Description))
+                { <p style="color:var(--gray);font-size:.9rem;line-height:1.7;margin:0">@Model.Description</p> }
+
+                @if (!string.IsNullOrEmpty(cls.CoachName))
+                {
+                    <div class="d-flex align-items-center gap-2 mt-3 pt-3" style="border-top:1px solid var(--dark-border)">
+                        @if (!string.IsNullOrEmpty(cls.CoachImage))
+                        { <img src="@cls.CoachImage" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/> }
+                        <div>
+                            <div style="font-size:.7rem;color:var(--gray)">مربی</div>
+                            <div style="font-weight:700;font-size:.88rem">@cls.CoachName</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ── لیست جلسات ── -->
+        <div class="col-lg-4">
+            <div style="background:var(--dark-card);border:1px solid var(--dark-border);border-radius:16px;padding:1.2rem;position:sticky;top:80px">
+                <div style="font-weight:700;margin-bottom:1rem;font-size:.95rem">
+                    <i class="fas fa-list-ol me-2" style="color:var(--primary)"></i>جلسات دوره
+                    <span style="font-size:.78rem;color:var(--gray);font-weight:400;margin-right:6px">@cls.Title</span>
+                </div>
+                <div class="d-flex flex-column gap-2" style="max-height:60vh;overflow-y:auto">
+                    @foreach (var s in cls.Sessions.OrderBy(x => x.SessionNumber))
+                    {
+                        bool isActive = s.Id == Model.Id;
+                        bool canWatch = s.IsFree || (bool)(ViewBag.HasAccess ?? false);
+                        string href2  = canWatch ? $"/offline-classes/watch/{s.Id}" : "/plans";
+                        <a href="@href2" class="session-list-item @(isActive?"active":"") @(canWatch?"":"locked")">
+                            <div style="width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem;background:@(isActive?"rgba(255,45,120,.2)":s.IsFree?"rgba(34,197,94,.1)":"rgba(255,255,255,.05)");color:@(isActive?"var(--primary)":s.IsFree?"#22c55e":"var(--gray)")">
+                                @s.SessionNumber
+                            </div>
+                            <div style="flex:1;min-width:0">
+                                <div style="font-size:.85rem;font-weight:@(isActive?"700":"400");white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@s.Title</div>
+                                <div style="font-size:.72rem;color:var(--gray)">@s.DurationMinutes دقیقه</div>
+                            </div>
+                            @if (!canWatch)
+                            { <i class="fas fa-lock" style="color:var(--gray);font-size:.8rem;flex-shrink:0"></i> }
+                            else if (isActive)
+                            { <i class="fas fa-volume-up" style="color:var(--primary);font-size:.85rem;flex-shrink:0"></i> }
+                        </a>
+                    }
+                </div>
+                @if (!(bool)(ViewBag.HasAccess ?? false))
+                {
+                    <div class="mt-3 pt-3" style="border-top:1px solid var(--dark-border)">
+                        <a href="/plans" class="btn-primary-tahila w-100 text-center" style="font-size:.85rem;padding:10px">
+                            <i class="fas fa-crown me-2"></i>دسترسی کامل با اشتراک
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+</section>

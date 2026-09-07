@@ -1,0 +1,77 @@
+@model IEnumerable<Tahila.Domain.Entities.ClassSession>
+@{
+    ViewData["PageTitle"] = "جلسات دوره";
+    var course = ViewBag.Course as Tahila.Domain.Entities.OfflineClass;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="/Admin/OfflineClasses" style="color:var(--gray);font-size:.85rem"><i class="fas fa-arrow-right me-1"></i>بازگشت به دوره‌ها</a>
+        <span class="mx-2" style="color:var(--dark-border)">|</span>
+        <span style="font-weight:700">@course?.Title</span>
+        <span style="background:rgba(99,102,241,.1);color:#6366f1;padding:3px 10px;border-radius:12px;font-size:.75rem;margin-right:8px">@Model.Count() جلسه</span>
+    </div>
+    <a href="/Admin/OfflineClasses/AddSession/@course?.Id" class="btn-primary-tahila"><i class="fas fa-plus me-2"></i>جلسه جدید</a>
+</div>
+
+<div class="tahila-card" style="overflow:hidden">
+    <table class="table-tahila w-100">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>تصویر</th>
+                <th>عنوان جلسه</th>
+                <th>مدت</th>
+                <th>دسترسی</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var s in Model.OrderBy(x => x.Order))
+        {
+            <tr>
+                <td style="color:var(--gray);font-weight:700">@s.SessionNumber</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(s.ThumbnailUrl))
+                    { <img src="@s.ThumbnailUrl" style="width:60px;height:38px;object-fit:cover;border-radius:6px"/> }
+                    else
+                    { <div style="width:60px;height:38px;background:rgba(99,102,241,.1);border-radius:6px;display:flex;align-items:center;justify-content:center"><i class="fas fa-play" style="color:#6366f1;font-size:.7rem"></i></div> }
+                </td>
+                <td>
+                    <div style="font-weight:600">@s.Title</div>
+                    @if (!string.IsNullOrEmpty(s.VideoUrl))
+                    { <div style="color:#6366f1;font-size:.72rem;margin-top:2px"><i class="fas fa-link me-1"></i>ویدیو متصل</div> }
+                </td>
+                <td style="color:var(--gray);font-size:.85rem">@s.DurationMinutes دقیقه</td>
+                <td>
+                    @if (s.IsFree)
+                    { <span style="background:rgba(34,197,94,.12);color:#22c55e;padding:3px 10px;border-radius:10px;font-size:.75rem">🆓 رایگان</span> }
+                    else
+                    { <span style="background:rgba(255,45,120,.1);color:var(--primary);padding:3px 10px;border-radius:10px;font-size:.75rem">🔒 VIP</span> }
+                </td>
+                <td>@(s.IsActive ? "<span class=\"badge-active\">فعال</span>" : "<span class=\"badge-inactive\">غیرفعال</span>")</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="/Admin/OfflineClasses/EditSession/@s.Id" class="btn-sm-outline"><i class="fas fa-edit"></i></a>
+                        <form method="post" action="/Admin/OfflineClasses/DeleteSession" onsubmit="return confirm('حذف شود؟')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="sessionId" value="@s.Id"/>
+                            <input type="hidden" name="courseId" value="@course?.Id"/>
+                            <button type="submit" class="btn-sm-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5" style="color:var(--gray)">
+            <i class="fas fa-play-circle" style="font-size:2.5rem;opacity:.3"></i>
+            <p class="mt-3">هنوز جلسه‌ای اضافه نشده</p>
+            <a href="/Admin/OfflineClasses/AddSession/@course?.Id" class="btn-primary-tahila mt-2">اضافه کردن اولین جلسه</a>
+        </div>
+    }
+</div>

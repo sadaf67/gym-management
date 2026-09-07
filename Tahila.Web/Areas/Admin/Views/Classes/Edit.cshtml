@@ -1,0 +1,36 @@
+@model Tahila.Domain.Entities.GymClass
+@{ Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; ViewData["PageTitle"] = "ویرایش کلاس"; }
+
+<div class="tahila-card p-4" style="max-width:800px">
+    <form method="post" enctype="multipart/form-data" class="form-tahila">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id"/>
+        <input type="hidden" asp-for="ImagePath"/>
+        <input type="hidden" asp-for="CreatedAt"/>
+        <div class="row g-3">
+            <div class="col-md-6"><label>نام کلاس *</label><input class="form-control" asp-for="Name" required/></div>
+            <div class="col-md-6"><label>مربی</label><select class="form-select" asp-for="CoachId" asp-items="ViewBag.Coaches"><option value="">-- بدون مربی --</option></select></div>
+            <div class="col-12"><label>توضیحات</label><textarea class="form-control" asp-for="Description" rows="3"></textarea></div>
+            <div class="col-md-4"><label>آیکون</label><input class="form-control" asp-for="IconClass"/></div>
+            <div class="col-md-4"><label>ظرفیت</label><input class="form-control" type="number" asp-for="Capacity"/></div>
+            <div class="col-md-4"><label>ترتیب</label><input class="form-control" type="number" asp-for="Order"/></div>
+            <div class="col-md-6"><label>برای</label><select class="form-select" asp-for="TargetGender" asp-items="ViewBag.Genders"></select></div>
+            <div class="col-md-6 d-flex align-items-end pb-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" asp-for="IsActive" id="isActive"/>
+                    <label class="form-check-label" for="isActive" style="color:var(--gray-light)">فعال</label>
+                </div>
+            </div>
+            <div class="col-12">
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                { <img src="@Model.ImagePath" style="height:70px;border-radius:10px;display:block;margin-bottom:8px"/> }
+                <label>تصویر جدید (اختیاری)</label>
+                <input type="file" class="form-control" name="imageFile" accept="image/*"/>
+            </div>
+            <div class="col-12 d-flex gap-3 mt-2">
+                <button type="submit" class="btn-primary-tahila"><i class="fas fa-save me-2"></i>ذخیره</button>
+                <a href="/Admin/Classes" class="btn-outline-tahila">انصراف</a>
+            </div>
+        </div>
+    </form>
+</div>

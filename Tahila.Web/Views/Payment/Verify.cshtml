@@ -1,0 +1,37 @@
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<section style="min-height:70vh;display:flex;align-items:center;padding:60px 0">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="tahila-card p-5 text-center">
+                    @if (ViewBag.Success == true)
+                    {
+                        <div style="width:80px;height:80px;background:rgba(34,197,94,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem">
+                            <i class="fas fa-check" style="font-size:2.5rem;color:#22c55e"></i>
+                        </div>
+                        <h3 style="font-weight:900;color:#22c55e">پرداخت موفق!</h3>
+                        <p style="color:var(--gray);margin:1rem 0">اشتراک شما با موفقیت فعال شد.</p>
+                        <p style="color:var(--gray);font-size:.85rem">کد پیگیری: @ViewBag.Authority</p>
+                        <div class="d-flex gap-3 justify-content-center mt-4">
+                            <a href="/member" class="btn-primary-tahila">پنل کاربری</a>
+                            <a href="/" class="btn-outline-tahila">صفحه اصلی</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="width:80px;height:80px;background:rgba(239,68,68,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem">
+                            <i class="fas fa-times" style="font-size:2.5rem;color:#ef4444"></i>
+                        </div>
+                        <h3 style="font-weight:900;color:#ef4444">پرداخت ناموفق</h3>
+                        <p style="color:var(--gray);margin:1rem 0">پرداخت انجام نشد یا توسط شما لغو شد.</p>
+                        <div class="d-flex gap-3 justify-content-center mt-4">
+                            <a href="/plans" class="btn-primary-tahila">تلاش مجدد</a>
+                            <a href="/" class="btn-outline-tahila">صفحه اصلی</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

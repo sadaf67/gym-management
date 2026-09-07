@@ -1,0 +1,73 @@
+@model IEnumerable<Tahila.Domain.Entities.Schedule>
+@{ ViewData["Title"] = "برنامه هفتگی"; }
+@{ var days = new[] { "شنبه","یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه" }; }
+
+<section style="padding:80px 0 40px">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="section-title">برنامه <span>هفتگی</span></h1>
+            <div class="section-divider mx-auto"></div>
+        </div>
+
+        <!-- Day tabs -->
+        <div class="d-flex gap-2 flex-wrap justify-content-center mb-4" id="dayTabs">
+            @for (int i = 0; i < 7; i++)
+            {
+                <button class="day-tab-btn @(i==0?"active":"")" data-day="@i"
+                        style="padding:8px 20px;border-radius:20px;border:1px solid var(--dark-border);background:@(i==0?"var(--primary)":"var(--dark-card)");color:@(i==0?"#fff":"var(--gray-light)");cursor:pointer;transition:all .3s;font-size:.9rem">
+                    @days[i]
+                </button>
+            }
+        </div>
+
+        @for (int day = 0; day < 7; day++)
+        {
+            var dayItems = Model.Where(s => (int)s.DayOfWeek == day).OrderBy(s => s.StartTime).ToList();
+            <div class="day-panel" data-day="@day" style="display:@(day==0?"block":"none")">
+                @if (dayItems.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var s in dayItems)
+                        {
+                            <div class="col-md-6 col-lg-4">
+                                <div class="tahila-card p-3 d-flex align-items-center gap-3">
+                                    <div style="background:rgba(255,45,120,.1);border-radius:12px;padding:12px;flex-shrink:0;text-align:center;min-width:70px">
+                                        <div style="color:var(--primary);font-weight:900;font-size:1rem">@s.StartTime.ToString(@"hh\:mm")</div>
+                                        <div style="color:var(--gray);font-size:.75rem">@s.EndTime.ToString(@"hh\:mm")</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:700">@s.GymClass?.Name</div>
+                                        @if (s.GymClass?.Coach != null)
+                                        { <div style="color:var(--gray);font-size:.85rem"><i class="fas fa-user me-1" style="color:var(--primary)"></i>@s.GymClass.Coach.FullName</div> }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5" style="color:var(--gray)"><i class="fas fa-calendar-times" style="font-size:2rem;opacity:.3"></i><p class="mt-2">برنامه‌ای برای این روز تعریف نشده</p></div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.day-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const day = btn.dataset.day;
+        document.querySelectorAll('.day-tab-btn').forEach(b => {
+            b.style.background = 'var(--dark-card)'; b.style.color = 'var(--gray-light)';
+            b.classList.remove('active');
+        });
+        btn.style.background = 'var(--primary)'; btn.style.color = '#fff';
+        btn.classList.add('active');
+        document.querySelectorAll('.day-panel').forEach(p => p.style.display = 'none');
+        document.querySelector(`.day-panel[data-day="${day}"]`).style.display = 'block';
+    });
+});
+</script>
+}

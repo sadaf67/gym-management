@@ -1,0 +1,59 @@
+@model IEnumerable<Tahila.Domain.Entities.Transformation>
+@{ ViewData["PageTitle"] = "داستان‌های موفقیت"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <span style="background:rgba(245,158,11,.1);color:#f59e0b;padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:700">@Model.Count() داستان</span>
+    <a href="/Admin/Transformations/Create" class="btn-primary-tahila"><i class="fas fa-plus me-2"></i>داستان جدید</a>
+</div>
+
+<div class="tahila-card" style="overflow:hidden">
+    <table class="table-tahila w-100">
+        <thead>
+            <tr><th>قبل/بعد</th><th>نام عضو</th><th>هدف</th><th>کاهش وزن</th><th>مدت</th><th>وضعیت</th><th>عملیات</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>
+                    <div style="display:flex;gap:4px">
+                        @if (!string.IsNullOrEmpty(t.BeforeImageUrl))
+                        { <img src="@t.BeforeImageUrl" style="width:36px;height:36px;object-fit:cover;border-radius:6px;opacity:.7"/> }
+                        else
+                        { <div style="width:36px;height:36px;background:rgba(255,255,255,.05);border-radius:6px"></div> }
+                        @if (!string.IsNullOrEmpty(t.AfterImageUrl))
+                        { <img src="@t.AfterImageUrl" style="width:36px;height:36px;object-fit:cover;border-radius:6px"/> }
+                        else
+                        { <div style="width:36px;height:36px;background:rgba(245,158,11,.1);border-radius:6px"></div> }
+                    </div>
+                </td>
+                <td>
+                    <div style="font-weight:700">@t.MemberName</div>
+                    @if (!string.IsNullOrEmpty(t.MemberTitle))
+                    { <div style="color:var(--gray);font-size:.78rem">@t.MemberTitle</div> }
+                </td>
+                <td><span style="background:rgba(245,158,11,.1);color:#f59e0b;padding:3px 10px;border-radius:10px;font-size:.8rem">@t.Goal</span></td>
+                <td style="font-weight:700;color:#22c55e">@(t.WeightLost > 0 ? $"{t.WeightLost} kg" : "—")</td>
+                <td style="color:var(--gray)">@t.DurationMonths ماه</td>
+                <td>@(t.IsActive ? "<span class=\"badge-active\">فعال</span>" : "<span class=\"badge-inactive\">غیرفعال</span>")</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="/Admin/Transformations/Edit/@t.Id" class="btn-sm-outline"><i class="fas fa-edit"></i></a>
+                        <form method="post" action="/Admin/Transformations/Delete/@t.Id" onsubmit="return confirm('حذف شود؟')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-sm-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5" style="color:var(--gray)">
+            <i class="fas fa-trophy" style="font-size:2.5rem;opacity:.3"></i>
+            <p class="mt-3">هنوز داستانی ثبت نشده</p>
+        </div>
+    }
+</div>

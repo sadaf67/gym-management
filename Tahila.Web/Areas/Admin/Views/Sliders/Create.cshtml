@@ -1,0 +1,26 @@
+@model Tahila.Domain.Entities.Slider
+@{ Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml"; }
+
+<div class="tahila-card p-4" style="max-width:700px">
+    <form method="post" enctype="multipart/form-data" class="form-tahila">
+        @Html.AntiForgeryToken()
+        <div class="row g-3">
+            <div class="col-12"><label>عنوان</label><input class="form-control" asp-for="Title" required/></div>
+            <div class="col-12"><label>زیرعنوان</label><input class="form-control" asp-for="SubTitle"/></div>
+            <div class="col-md-6"><label>متن دکمه</label><input class="form-control" asp-for="ButtonText"/></div>
+            <div class="col-md-6"><label>لینک دکمه</label><input class="form-control" asp-for="ButtonLink"/></div>
+            <div class="col-md-4"><label>ترتیب</label><input class="form-control" type="number" asp-for="Order"/></div>
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" asp-for="IsActive" id="isActive"/>
+                    <label class="form-check-label" for="isActive" style="color:var(--gray-light)">فعال</label>
+                </div>
+            </div>
+            <div class="col-12"><label>تصویر اسلایدر</label><input type="file" class="form-control" name="imageFile" accept="image/*" required/></div>
+            <div class="col-12 d-flex gap-3">
+                <button type="submit" class="btn-primary-tahila"><i class="fas fa-save me-2"></i>ذخیره</button>
+                <a href="/Admin/Sliders" class="btn-outline-tahila">انصراف</a>
+            </div>
+        </div>
+    </form>
+</div>
